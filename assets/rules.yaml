@@ -256,3 +256,155 @@
         printer (Microsoft virtual printers excluded).
       impact: No printing or printer sharing will be possible from this machine any more.
       gpo: Computer Configuration > Policies > Windows Settings > Security Settings > System Services > Print Spooler
+
+# ---------------------------------------------------------------- Tâches planifiées
+- id: TSK-001
+  category: tasks
+  level: critical
+  refs:
+    - name: "MITRE ATT&CK T1053.005 — Scheduled Task"
+      url: https://attack.mitre.org/techniques/T1053/005/
+  remediation: |
+    icacls {{ps .path}} /remove:g {{.sids}}
+    icacls {{ps .path}}
+  text:
+    fr:
+      title: Tâche à privilèges élevés lançant un fichier modifiable
+      summary: >-
+        Une tâche planifiée qui s'exécute avec des droits élevés lance un programme ou un
+        script que n'importe quel utilisateur peut modifier ou remplacer. Il suffit de le
+        modifier pour obtenir le contrôle total de la machine.
+      detail: >-
+        Tâche active exécutée en SYSTEM, LocalService, NetworkService, Administrateurs ou
+        « privilèges les plus élevés », dont l'exécutable, le script ou leur dossier est
+        inscriptible par des groupes non administrateurs (y compris un exécutable manquant
+        dont le dossier est inscriptible).
+      impact: >-
+        Seules les entrées explicites sont retirées ; si les droits sont hérités, corriger
+        le dossier parent. Vérifier ensuite que la tâche fonctionne toujours.
+    en:
+      title: High-privilege task running a writable file
+      summary: >-
+        A scheduled task running with high privileges starts a program or script that any
+        user can modify or replace. Modifying it is enough to take full control of the
+        machine.
+      detail: >-
+        Enabled task running as SYSTEM, LocalService, NetworkService, Administrators or
+        "highest privileges", whose executable, script or their folder is writable by
+        non-administrator groups (including a missing executable in a writable folder).
+      impact: >-
+        Only explicit entries are removed; if the rights are inherited, fix the parent
+        folder. Then check that the task still works.
+
+- id: TSK-002
+  category: tasks
+  level: warning
+  refs:
+    - name: "MITRE ATT&CK T1053.005 — Scheduled Task"
+      url: https://attack.mitre.org/techniques/T1053/005/
+  remediation: |
+    Get-ScheduledTask -TaskPath {{ps .folder}} -TaskName {{ps .name}} | Select-Object -ExpandProperty Actions
+    Disable-ScheduledTask -TaskPath {{ps .folder}} -TaskName {{ps .name}}
+  text:
+    fr:
+      title: Tâche à privilèges élevés lancée depuis un dossier temporaire ou utilisateur
+      summary: >-
+        Une tâche avec des droits élevés lance un programme situé dans un dossier
+        temporaire, de profil ou public. C'est une pratique risquée, et une technique
+        courante de persistance des logiciels malveillants.
+      detail: >-
+        Exécutable ou script sous %TEMP%, AppData, Users\Public, Downloads, ou sous
+        ProgramData dans un dossier inscriptible par des non-administrateurs.
+      impact: Vérifier l'origine de la tâche avant de la désactiver ; si elle est légitime, déplacer le programme dans « Program Files ».
+    en:
+      title: High-privilege task started from a temporary or user folder
+      summary: >-
+        A high-privilege task starts a program located in a temporary, profile or public
+        folder. This is a risky practice and a common malware persistence technique.
+      detail: >-
+        Executable or script under %TEMP%, AppData, Users\Public, Downloads, or under
+        ProgramData in a folder writable by non-administrators.
+      impact: Check where the task comes from before disabling it; if it is legitimate, move the program under "Program Files".
+
+- id: TSK-003
+  category: tasks
+  level: warning
+  refs:
+    - name: "MITRE ATT&CK T1027 — Obfuscated Files or Information"
+      url: https://attack.mitre.org/techniques/T1027/
+    - name: "MITRE ATT&CK T1218.005 — Mshta"
+      url: https://attack.mitre.org/techniques/T1218/005/
+    - name: "MITRE ATT&CK T1197 — BITS Jobs"
+      url: https://attack.mitre.org/techniques/T1197/
+  remediation: |
+    Get-ScheduledTask -TaskPath {{ps .folder}} -TaskName {{ps .name}} | Select-Object -ExpandProperty Actions
+    Disable-ScheduledTask -TaskPath {{ps .folder}} -TaskName {{ps .name}}
+  text:
+    fr:
+      title: Tâche planifiée avec une commande suspecte
+      summary: >-
+        Une tâche lance une commande typique des logiciels malveillants (commande
+        PowerShell encodée ou masquée, téléchargement, mshta…). Elle doit être examinée.
+      detail: >-
+        Indices : powershell -EncodedCommand / -WindowStyle Hidden / téléchargement et
+        exécution, mshta, rundll32 ou regsvr32 avec une URL, certutil -urlcache/-decode,
+        bitsadmin /transfer.
+      impact: >-
+        Désactiver la tâche ne supprime pas un éventuel logiciel malveillant : en cas de doute, faire analyser la machine.
+    en:
+      title: Scheduled task with a suspicious command
+      summary: >-
+        A task runs a command typical of malware (encoded or hidden PowerShell command,
+        download, mshta…). It must be examined.
+      detail: >-
+        Indicators: powershell -EncodedCommand / -WindowStyle Hidden / download and
+        execute, mshta, rundll32 or regsvr32 with a URL, certutil -urlcache/-decode,
+        bitsadmin /transfer.
+      impact: >-
+        Disabling the task does not remove any malware: if in doubt, have the machine scanned.
+
+- id: TSK-004
+  category: tasks
+  level: info
+  refs:
+    - name: "MITRE ATT&CK T1053.005 — Scheduled Task"
+      url: https://attack.mitre.org/techniques/T1053/005/
+  remediation: |
+    Get-ScheduledTask -TaskPath {{ps .folder}} -TaskName {{ps .name}} | Format-List *
+  text:
+    fr:
+      title: Tâche masquée ou sans auteur
+      summary: >-
+        Des tâches planifiées hors Microsoft sont masquées ou n'indiquent pas leur auteur.
+        C'est souvent anodin, mais elles méritent un coup d'œil.
+      detail: Tâche hors \Microsoft\ avec Settings.Hidden = vrai ou RegistrationInfo.Author vide.
+    en:
+      title: Hidden or authorless task
+      summary: >-
+        Non-Microsoft scheduled tasks are hidden or do not state their author. This is often
+        harmless, but they deserve a look.
+      detail: Task outside \Microsoft\ with Settings.Hidden = true or an empty RegistrationInfo.Author.
+
+- id: TSK-005
+  category: tasks
+  level: info
+  refs:
+    - name: "MITRE ATT&CK T1053.005 — Scheduled Task"
+      url: https://attack.mitre.org/techniques/T1053/005/
+  remediation: |
+    Unregister-ScheduledTask -TaskPath {{ps .folder}} -TaskName {{ps .name}} -Confirm:$false
+  text:
+    fr:
+      title: Tâche planifiée orpheline
+      summary: >-
+        Des tâches planifiées lancent un programme qui n'existe plus (logiciel désinstallé).
+        Elles sont inutiles et peuvent être supprimées.
+      detail: Exécutable de l'action introuvable après résolution des variables et du chemin système.
+      impact: Vérifier que le programme n'est pas sur un lecteur réseau ou amovible absent pendant l'audit.
+    en:
+      title: Orphaned scheduled task
+      summary: >-
+        Scheduled tasks start a program that no longer exists (uninstalled software). They
+        are useless and can be deleted.
+      detail: Action executable not found after resolving variables and the system path.
+      impact: Check that the program is not on a network or removable drive missing during the audit.

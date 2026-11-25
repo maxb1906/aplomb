@@ -104,5 +104,11 @@
     "printers": [
       "Copieur RDC"
     ]
+  },
+  "gaps": {
+    "tasks": {
+      "reason": "error",
+      "detail": "Schedule.Service : 0x80070005"
+    }
   }
 }

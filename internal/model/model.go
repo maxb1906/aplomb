@@ -57,6 +57,7 @@ type Snapshot struct {
 	DurationMS  int64     `json:"duration_ms"`
 	Host        Host      `json:"host"`
 	Services    *Services `json:"services,omitempty"`
+	Tasks       *Tasks    `json:"tasks,omitempty"`
 	// Gaps liste les sections entières non collectées (clé : nom de section).
 	Gaps Gaps `json:"gaps,omitempty"`
 }

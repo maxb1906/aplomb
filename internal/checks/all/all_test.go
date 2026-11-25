@@ -107,6 +107,7 @@ func TestHealthyWorkstation(t *testing.T) {
 	check(t, "healthy", got, map[string]string{
 		"SYS-012": "pass", "SYS-013": "pass",
 		"SVC-001": "pass", "SVC-002": "pass", "SVC-003": "pass", "SVC-004": "pass", "SVC-005": "not_applicable",
+		"TSK-001": "pass", "TSK-002": "pass", "TSK-003": "pass", "TSK-004": "pass", "TSK-005": "pass",
 	})
 	for id, r := range got {
 		if r.Status == rules.Fail {
@@ -127,6 +128,15 @@ func TestVulnerableWorkstation(t *testing.T) {
 	})
 	objects(t, got["SVC-001"], "VulnSvc", "UnqWarn")
 	objects(t, got["SVC-004"], "Updater")
+	check(t, "vulnerable", got, map[string]string{
+		"TSK-001": "fail/critical", "TSK-002": "fail/warning", "TSK-003": "fail/warning", "TSK-004": "fail/info", "TSK-005": "fail/info",
+	})
+	// La tâche de l'utilisateur bob n'est pas privilégiée : pas d'élévation.
+	objects(t, got["TSK-001"], `\Backup — C:\Scripts\backup.ps1`)
+	objects(t, got["TSK-002"], `\Sync`)
+	objects(t, got["TSK-003"], `\Updater Check`)
+	objects(t, got["TSK-004"], `\Updater Check`)
+	objects(t, got["TSK-005"], `\OldTool`)
 	objects(t, got["SVC-002"], `WeakBin — C:\ProgramData\WeakVendor\weak.exe`, `WeakBin — C:\ProgramData\WeakVendor`, `DropDir — C:\ProgramData\Drop`)
 	if f := finding(got["SVC-002"], `DropDir — C:\ProgramData\Drop`); f == nil || f.Level != "warning" {
 		t.Errorf("ajout de fichier seulement → Attention (%+v)", f)
@@ -151,7 +161,11 @@ func TestNonAdminServer(t *testing.T) {
 	check(t, "nonadmin-server", got, map[string]string{
 		"SYS-012": "fail/warning",
 		"SVC-005": "fail/warning",
+		"TSK-001": "pass",
 	})
+	if got["TSK-001"].Note != "partial_tasks" {
+		t.Error("sans admin, la vérification des tâches doit être signalée comme partielle")
+	}
 }
 
 func TestDC(t *testing.T) {
@@ -159,6 +173,7 @@ func TestDC(t *testing.T) {
 	check(t, "dc", got, map[string]string{
 		"SYS-013": "not_checked",
 		"SVC-005": "fail", // spouleur actif sur un DC, même avec une imprimante
+		"TSK-001": "not_checked",
 	})
 }
 

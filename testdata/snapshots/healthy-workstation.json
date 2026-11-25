@@ -106,5 +106,66 @@
     "printers": [
       "HP LaserJet M404"
     ]
+  },
+  "tasks": {
+    "list": [
+      {
+        "path": "\\Microsoft\\Windows\\Defrag\\ScheduledDefrag",
+        "folder": "\\Microsoft\\Windows\\Defrag\\",
+        "name": "ScheduledDefrag",
+        "enabled": true,
+        "hidden": false,
+        "author": "Microsoft Corporation",
+        "user_id": "SYSTEM",
+        "principal_sid": "S-1-5-18",
+        "run_level": 0,
+        "privileged": true,
+        "actions": [
+          {
+            "path": "C:\\Windows\\system32\\defrag.exe",
+            "args": "-c -h -o",
+            "resolved": "C:\\Windows\\system32\\defrag.exe",
+            "exists": true,
+            "file": {
+              "path": "C:\\Windows\\system32\\defrag.exe",
+              "exists": true
+            },
+            "replace": {
+              "path": "C:\\Windows\\system32",
+              "exists": true
+            }
+          }
+        ]
+      },
+      {
+        "path": "\\Vendor\\Update",
+        "folder": "\\Vendor\\",
+        "name": "Update",
+        "enabled": true,
+        "hidden": false,
+        "author": "Vendor",
+        "user_id": "SYSTEM",
+        "principal_sid": "S-1-5-18",
+        "run_level": 0,
+        "privileged": true,
+        "actions": [
+          {
+            "path": "C:\\Program Files\\Vendor\\update.exe",
+            "args": "/silent",
+            "resolved": "C:\\Program Files\\Vendor\\update.exe",
+            "exists": true,
+            "file": {
+              "path": "C:\\Program Files\\Vendor\\update.exe",
+              "exists": true
+            },
+            "replace": {
+              "path": "C:\\Program Files\\Vendor",
+              "exists": true
+            }
+          }
+        ]
+      }
+    ],
+    "partial": false
   }
 }

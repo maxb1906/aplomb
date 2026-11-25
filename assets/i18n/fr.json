@@ -72,6 +72,7 @@
   "level.info": "Info",
   "level.warning": "Attention",
   "note.absent": "Fonctionnalité absente sur cette machine",
+  "note.partial_tasks": "Vérification partielle : sans droits administrateur, les tâches des autres comptes ne sont pas visibles",
   "note.profile": "Ne concerne pas ce type de machine ({a0})",
   "reason.absent": "Fonctionnalité absente sur cette machine",
   "reason.error": "Erreur pendant la collecte",

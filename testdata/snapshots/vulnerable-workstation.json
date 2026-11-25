@@ -369,5 +369,226 @@
       }
     ],
     "printers": []
+  },
+  "tasks": {
+    "list": [
+      {
+        "path": "\\Microsoft\\Windows\\Defrag\\ScheduledDefrag",
+        "folder": "\\Microsoft\\Windows\\Defrag\\",
+        "name": "ScheduledDefrag",
+        "enabled": true,
+        "hidden": false,
+        "author": "Microsoft Corporation",
+        "user_id": "SYSTEM",
+        "principal_sid": "S-1-5-18",
+        "run_level": 0,
+        "privileged": true,
+        "actions": [
+          {
+            "path": "C:\\Windows\\system32\\defrag.exe",
+            "args": "-c -h -o",
+            "resolved": "C:\\Windows\\system32\\defrag.exe",
+            "exists": true,
+            "file": {
+              "path": "C:\\Windows\\system32\\defrag.exe",
+              "exists": true
+            },
+            "replace": {
+              "path": "C:\\Windows\\system32",
+              "exists": true
+            }
+          }
+        ]
+      },
+      {
+        "path": "\\Vendor\\Update",
+        "folder": "\\Vendor\\",
+        "name": "Update",
+        "enabled": true,
+        "hidden": false,
+        "author": "Vendor",
+        "user_id": "SYSTEM",
+        "principal_sid": "S-1-5-18",
+        "run_level": 0,
+        "privileged": true,
+        "actions": [
+          {
+            "path": "C:\\Program Files\\Vendor\\update.exe",
+            "args": "/silent",
+            "resolved": "C:\\Program Files\\Vendor\\update.exe",
+            "exists": true,
+            "file": {
+              "path": "C:\\Program Files\\Vendor\\update.exe",
+              "exists": true
+            },
+            "replace": {
+              "path": "C:\\Program Files\\Vendor",
+              "exists": true
+            }
+          }
+        ]
+      },
+      {
+        "path": "\\Backup",
+        "folder": "\\",
+        "name": "Backup",
+        "enabled": true,
+        "hidden": false,
+        "author": "Vendor",
+        "user_id": "SYSTEM",
+        "principal_sid": "S-1-5-18",
+        "run_level": 0,
+        "privileged": true,
+        "actions": [
+          {
+            "path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            "args": "-ExecutionPolicy Bypass -File C:\\Scripts\\backup.ps1",
+            "resolved": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            "exists": true,
+            "file": {
+              "path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+              "exists": true
+            },
+            "replace": {
+              "path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0",
+              "exists": true
+            },
+            "script": "C:\\Scripts\\backup.ps1",
+            "script_exists": true,
+            "script_file": {
+              "path": "C:\\Scripts\\backup.ps1",
+              "exists": true,
+              "writable_by": [
+                {
+                  "sid": "S-1-5-32-545",
+                  "name": "BUILTIN\\Utilisateurs",
+                  "rights": "write"
+                }
+              ]
+            },
+            "script_replace": {
+              "path": "C:\\Scripts",
+              "exists": true
+            }
+          }
+        ]
+      },
+      {
+        "path": "\\Sync",
+        "folder": "\\",
+        "name": "Sync",
+        "enabled": true,
+        "hidden": false,
+        "author": "Vendor",
+        "user_id": "SYSTEM",
+        "principal_sid": "S-1-5-18",
+        "run_level": 0,
+        "privileged": true,
+        "actions": [
+          {
+            "path": "C:\\Users\\Public\\sync.exe",
+            "args": "",
+            "resolved": "C:\\Users\\Public\\sync.exe",
+            "exists": true,
+            "file": {
+              "path": "C:\\Users\\Public\\sync.exe",
+              "exists": true
+            },
+            "replace": {
+              "path": "C:\\Users\\Public",
+              "exists": true
+            }
+          }
+        ]
+      },
+      {
+        "path": "\\Updater Check",
+        "folder": "\\",
+        "name": "Updater Check",
+        "enabled": true,
+        "hidden": true,
+        "author": "",
+        "user_id": "SYSTEM",
+        "principal_sid": "S-1-5-18",
+        "run_level": 0,
+        "privileged": true,
+        "actions": [
+          {
+            "path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            "args": "-nop -w hidden -enc SQBFAFgA",
+            "resolved": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            "exists": true,
+            "file": {
+              "path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+              "exists": true
+            },
+            "replace": {
+              "path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0",
+              "exists": true
+            }
+          }
+        ]
+      },
+      {
+        "path": "\\OldTool",
+        "folder": "\\",
+        "name": "OldTool",
+        "enabled": true,
+        "hidden": false,
+        "author": "Vendor",
+        "user_id": "SYSTEM",
+        "principal_sid": "S-1-5-18",
+        "run_level": 0,
+        "privileged": true,
+        "actions": [
+          {
+            "path": "C:\\Program Files\\OldTool\\old.exe",
+            "args": "",
+            "resolved": "C:\\Program Files\\OldTool\\old.exe",
+            "exists": false,
+            "create": {
+              "path": "C:\\Program Files\\OldTool",
+              "exists": true
+            }
+          }
+        ]
+      },
+      {
+        "path": "\\UserTask",
+        "folder": "\\",
+        "name": "UserTask",
+        "enabled": true,
+        "hidden": false,
+        "author": "Vendor",
+        "user_id": "PC\\bob",
+        "principal_sid": "S-1-5-21-1-2-3-1001",
+        "run_level": 0,
+        "privileged": false,
+        "actions": [
+          {
+            "path": "C:\\Users\\bob\\AppData\\Local\\App\\app.exe",
+            "args": "",
+            "resolved": "C:\\Users\\bob\\AppData\\Local\\App\\app.exe",
+            "exists": true,
+            "file": {
+              "path": "C:\\Users\\bob\\AppData\\Local\\App\\app.exe",
+              "exists": true,
+              "writable_by": [
+                {
+                  "sid": "S-1-5-32-545",
+                  "name": "BUILTIN\\Utilisateurs",
+                  "rights": "write"
+                }
+              ]
+            },
+            "replace": {
+              "path": "C:\\Users\\bob\\AppData\\Local\\App",
+              "exists": true
+            }
+          }
+        ]
+      }
+    ],
+    "partial": false
   }
 }
