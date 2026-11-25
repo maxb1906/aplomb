@@ -13,7 +13,13 @@ $ErrorActionPreference = 'Continue'
 if (-not $ConfirmLab) { throw 'Relancez avec -ConfirmLab.' }
 
 function Step([string]$label, [scriptblock]$block) {
-    try { & $block; Write-Host "[undo] $label" } catch { Write-Warning "[undo] $label : $_" }
+    $global:LASTEXITCODE = 0
+    try {
+        & $block
+        if ($LASTEXITCODE -ne 0) { Write-Warning "[undo] $label : code de sortie $LASTEXITCODE" }
+        else { Write-Host "[undo] $label" -ForegroundColor Yellow }
+    } catch { Write-Warning "[undo] $label : $_" }
+    $global:LASTEXITCODE = 0
 }
 
 Step 'services' { foreach ($s in 'AplombLabUnquoted', 'AplombLabWeakBin', 'AplombLabWeakKey') { & sc.exe delete $s | Out-Null } }
@@ -41,3 +47,4 @@ Step 'Defender' {
         Remove-MpPreference -ExclusionPath 'C:\Users' -ExclusionExtension 'exe'
     }
 }
+exit 0

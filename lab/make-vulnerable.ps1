@@ -36,8 +36,13 @@ $users = Name-Of 'S-1-5-32-545'
 $authUsers = Name-Of 'S-1-5-11'
 
 function Step([string]$label, [scriptblock]$block) {
-    try { & $block; Write-Host "[lab] $label" -ForegroundColor Yellow }
-    catch { Write-Warning "[lab] $label : $_" }
+    $global:LASTEXITCODE = 0
+    try {
+        & $block
+        if ($LASTEXITCODE -ne 0) { Write-Warning "[lab] $label : code de sortie $LASTEXITCODE" }
+        else { Write-Host "[lab] $label" -ForegroundColor Yellow }
+    } catch { Write-Warning "[lab] $label : $_" }
+    $global:LASTEXITCODE = 0
 }
 function Grant([string]$path, [string]$who, [string]$rights) {
     $acl = Get-Acl -LiteralPath $path
@@ -147,3 +152,4 @@ Step 'DEF-004 exclusions Defender trop larges' {
 }
 
 Write-Host 'Machine de laboratoire dégradée. Lancez Aplomb, puis lab\undo-vulnerable.ps1 -ConfirmLab ou restaurez le snapshot.' -ForegroundColor Cyan
+exit 0
