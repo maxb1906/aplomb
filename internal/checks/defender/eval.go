@@ -107,7 +107,7 @@ func exclusions(c *rules.Ctx) rules.Outcome {
 		}
 		seen[k] = true
 		flag := map[string]string{"path": "-ExclusionPath", "extension": "-ExclusionExtension", "process": "-ExclusionProcess"}[e.Kind]
-		fs = append(fs, rules.Finding{Object: e.Kind + " : " + e.Value, GPO: e.Policy,
+		fs = append(fs, rules.Finding{Object: e.Value + " (" + e.Kind + ")", GPO: e.Policy,
 			Evidence: map[string]string{"kind": e.Kind, "value": e.Value, "policy": strconv.FormatBool(e.Policy)},
 			Params:   map[string]string{"flag": flag, "value": e.Value}})
 	}

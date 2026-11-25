@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"html/template"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"testing"
@@ -114,5 +115,57 @@ func TestLogoOnlyLocalImages(t *testing.T) {
 func TestReplaceParams(t *testing.T) {
 	if got := replaceParams("Le {a} et {b}", map[string]string{"a": "x"}); got != "Le x et {b}" {
 		t.Error(got)
+	}
+}
+
+// Aucun rapport ne doit contenir de variable non remplacée ni de clé non traduite.
+func TestAllFixturesRenderCleanly(t *testing.T) {
+	_, file, _, _ := runtime.Caller(0)
+	fixtures, _ := filepath.Glob(filepath.Join(filepath.Dir(file), "..", "..", "testdata", "snapshots", "*.json"))
+	if len(fixtures) == 0 {
+		t.Fatal("aucune fixture")
+	}
+	leftover := regexp.MustCompile(`\{[a-z_0-9]+\}|\b(?:report|status|level|category|note|reason|role|host|summary|script)\.[a-z_]+\b`)
+	b0, _ := i18n.Default()
+	for _, fx := range fixtures {
+		name := strings.TrimSuffix(filepath.Base(fx), ".json")
+		for _, lang := range []string{"fr", "en"} {
+			r, o := build(t, name, nil)
+			o.Translator = b0.Translator(lang)
+			for fname, fn := range map[string]func(*bytes.Buffer) error{
+				"html": func(b *bytes.Buffer) error { return HTML(b, r, o) },
+				"md":   func(b *bytes.Buffer) error { return Markdown(b, r, o) },
+				"ps1":  func(b *bytes.Buffer) error { return Script(b, r, o) },
+			} {
+				var b bytes.Buffer
+				if err := fn(&b); err != nil {
+					t.Fatalf("%s %s %s : %v", name, lang, fname, err)
+				}
+				// Les commandes PowerShell contiennent des accolades : on ne
+				// cherche les variables oubliées que hors blocs de code.
+				text := b.String()
+				if fname == "html" {
+					text = regexp.MustCompile(`(?s)<pre>.*?</pre>|<script>.*?</script>|<style>.*?</style>`).ReplaceAllString(text, "")
+				}
+				if fname == "md" {
+					text = regexp.MustCompile("(?s)```powershell.*?```").ReplaceAllString(text, "")
+				}
+				if fname == "ps1" {
+					var keep []string
+					for _, l := range strings.Split(text, "\r\n") {
+						if strings.HasPrefix(l, "# ") && !strings.Contains(l, "Invoke-AplombFix") && !strings.HasPrefix(l, "#     ") {
+							keep = append(keep, l)
+						}
+					}
+					text = strings.Join(keep, "\n")
+				}
+				for _, m := range leftover.FindAllString(text, -1) {
+					if strings.HasPrefix(m, "host.") || m == "{score}" {
+						continue
+					}
+					t.Errorf("%s %s %s : %q non remplacé", name, lang, fname, m)
+				}
+			}
+		}
 	}
 }

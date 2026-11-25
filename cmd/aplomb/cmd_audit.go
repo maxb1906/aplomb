@@ -54,6 +54,9 @@ func cmdAudit(e *env, args []string) int {
 		return code
 	}
 	fmt.Fprintln(e.stdout, e.T("audit.start"))
+	if !collect.Elevated() {
+		fmt.Fprintln(e.stdout, e.T("audit.not_elevated"))
+	}
 	snap, err := collect.Collect(version, func(section string) {
 		fmt.Fprintln(e.stdout, "  · "+e.T("section."+section))
 	})

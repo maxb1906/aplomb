@@ -178,5 +178,5 @@ func backupNotEnforced(c *rules.Ctx) rules.Outcome {
 	if c.Snap.BitLocker.BackupPolicy {
 		return rules.Passed(map[string]string{"backup_policy": "true"})
 	}
-	return rules.Failed(rules.Finding{Object: v.Mount, GPO: true, Evidence: map[string]string{"backup_policy": "false"}, Params: params(c, v)})
+	return rules.Failed(rules.Finding{Object: v.Mount, Evidence: map[string]string{"backup_policy": "false"}, Params: params(c, v)})
 }

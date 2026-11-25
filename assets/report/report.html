@@ -16,7 +16,7 @@
     <h1>{{t "report.title"}} — {{.R.Host.Name}}</h1>
     <div class="who">
       {{datetime .R.Meta.CollectedAt}}
-      {{if .R.Meta.Technician}} · {{t "report.technician"}} : {{.R.Meta.Technician}}{{end}}
+      {{if .R.Meta.Technician}} · {{t "report.technician"}}{{t "common.colon"}}{{.R.Meta.Technician}}{{end}}
       {{if .R.Meta.Company}} · {{.R.Meta.Company}}{{end}}
     </div>
     <div class="who">Aplomb {{.R.Meta.Version}} · {{t "report.readonly"}}</div>
@@ -54,7 +54,7 @@
 <h2>{{t "report.accepted"}} ({{len .Accepted}})</h2>
 {{range .Accepted}}<div class="card">
   <div class="head"><span class="badge b-accepted_risk">{{.StatusLabel}}</span><h3>{{.Title}}</h3><span class="id">{{.ID}}</span></div>
-  <p class="small"><strong>{{t "report.justification"}} :</strong> {{.Accepted}}</p>
+  <p class="small"><strong>{{t "report.justification"}}{{t "common.colon"}}</strong>{{.Accepted}}</p>
   {{if .Findings}}<ul class="objects">{{range .Findings}}{{if .Object}}<li class="small">{{.Object}}</li>{{end}}{{end}}</ul>{{end}}
 </div>{{end}}
 {{end}}
@@ -109,7 +109,7 @@ document.addEventListener("click", function (e) {
   <div class="head"><span class="badge b-{{.Level}}">{{.LevelLabel}}</span><h3>{{.Title}}</h3><span class="id">{{.ID}} · {{.CategoryLabel}}</span>{{if .GPO}}<span class="badge b-gpo">GPO</span>{{end}}</div>
   <p>{{.Summary}}</p>
   {{if .Detail}}<p class="small muted">{{.Detail}}</p>{{end}}
-  {{if .GPO}}<div class="gpo">{{t "report.gpo_fix"}}{{if .GPOPath}} : {{.GPOPath}}{{end}}</div>{{end}}
+  {{if .GPO}}<div class="gpo">{{t "report.gpo_fix"}}{{if .GPOPath}}{{t "common.colon"}}{{.GPOPath}}{{end}}</div>{{else if .GPOPath}}<p class="small muted">{{t "report.gpo_where"}}{{t "common.colon"}}{{.GPOPath}}</p>{{end}}
   {{if .Impact}}<div class="impact">⚠ {{.Impact}}</div>{{end}}
   <ul class="objects">
   {{range .Findings}}<li>
@@ -118,5 +118,5 @@ document.addEventListener("click", function (e) {
     {{if .Remediation}}<div class="cmd"><pre><code>{{.Remediation}}</code></pre><button class="copy" type="button" data-done="{{t "report.copied"}}">{{t "report.copy"}}</button></div>{{end}}
   </li>{{end}}
   </ul>
-  {{if .Refs}}<div class="small muted">{{t "report.refs"}} : {{range $i, $r := .Refs}}{{if $i}} · {{end}}<a href="{{$r.URL}}">{{$r.Name}}</a>{{end}}</div>{{end}}
+  {{if .Refs}}<div class="small muted">{{t "report.refs"}}{{t "common.colon"}}{{range $i, $r := .Refs}}{{if $i}} · {{end}}<a href="{{$r.URL}}">{{$r.Name}}</a>{{end}}</div>{{end}}
 </div>{{end}}

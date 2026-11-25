@@ -2,9 +2,9 @@
 
 > **{{t "report.confidential"}}**
 
-{{datetime .R.Meta.CollectedAt}}{{if .R.Meta.Technician}} · {{t "report.technician"}} : {{.R.Meta.Technician}}{{end}}{{if .R.Meta.Company}} · {{.R.Meta.Company}}{{end}} · Aplomb {{.R.Meta.Version}}
+{{datetime .R.Meta.CollectedAt}}{{if .R.Meta.Technician}} · {{t "report.technician"}}{{t "common.colon"}}{{.R.Meta.Technician}}{{end}}{{if .R.Meta.Company}} · {{.R.Meta.Company}}{{end}} · Aplomb {{.R.Meta.Version}}
 
-**{{t "report.score"}} : {{if .HasScore}}{{.R.Score.Score}} / 100{{else}}—{{end}} — {{t "report.grade"}} {{.R.Score.Grade}}** · {{t "report.coverage" "coverage" .R.Score.Coverage}}
+**{{t "report.score"}}{{t "common.colon"}}{{if .HasScore}}{{.R.Score.Score}} / 100{{else}}—{{end}} — {{t "report.grade"}} {{.R.Score.Grade}}** · {{t "report.coverage" "coverage" .R.Score.Coverage}}
 
 ## {{t "report.summary"}}
 
@@ -30,7 +30,9 @@
 {{if .Detail}}
 *{{.Detail}}*
 {{end}}{{if .GPO}}
-> {{t "report.gpo_fix"}}{{if .GPOPath}} : {{.GPOPath}}{{end}}
+> {{t "report.gpo_fix"}}{{if .GPOPath}}{{t "common.colon"}}{{.GPOPath}}{{end}}
+{{else if .GPOPath}}
+{{t "report.gpo_where"}}{{t "common.colon"}}{{.GPOPath}}
 {{end}}{{if .Impact}}
 > ⚠ {{.Impact}}
 {{end}}{{range .Findings}}{{if .Object}}
@@ -40,11 +42,11 @@
 {{.Remediation}}
 ```
 {{end}}{{end}}{{if .Refs}}
-{{t "report.refs"}} : {{range $i, $r := .Refs}}{{if $i}} · {{end}}[{{$r.Name}}]({{$r.URL}}){{end}}
+{{t "report.refs"}}{{t "common.colon"}}{{range $i, $r := .Refs}}{{if $i}} · {{end}}[{{$r.Name}}]({{$r.URL}}){{end}}
 {{end}}{{end}}
 {{if .Accepted}}## {{t "report.accepted"}} ({{len .Accepted}})
 
-{{range .Accepted}}- `{{.ID}}` {{.Title}} — {{t "report.justification"}} : {{.Accepted}}
+{{range .Accepted}}- `{{.ID}}` {{.Title}} — {{t "report.justification"}}{{t "common.colon"}}{{.Accepted}}
 {{end}}
 {{end}}{{if .NotChecked}}## {{t "report.not_checked"}} ({{len .NotChecked}})
 

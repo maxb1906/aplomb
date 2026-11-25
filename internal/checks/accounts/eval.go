@@ -250,5 +250,5 @@ func evalLAPS(c *rules.Ctx) rules.Outcome {
 	if i := strings.Index(h.ComputerDN, ","); i > 0 && h.JoinType == "domain" {
 		ou = h.ComputerDN[i+1:]
 	}
-	return rules.Failed(rules.Finding{Evidence: ev, GPO: true, Params: map[string]string{"ou": ou, "join": h.JoinType}})
+	return rules.Failed(rules.Finding{Evidence: ev, Params: map[string]string{"ou": ou, "join": h.JoinType}})
 }

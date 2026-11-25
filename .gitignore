@@ -3,3 +3,4 @@
 *.test
 *.out
 /aplomb-data/
+/dist-goreleaser/

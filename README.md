@@ -5,24 +5,9 @@
 [![CI](https://github.com/maxb1906/aplomb/actions/workflows/ci.yml/badge.svg)](https://github.com/maxb1906/aplomb/actions/workflows/ci.yml)
 [![Licence : GPL-3.0](https://img.shields.io/badge/licence-GPL--3.0-blue.svg)](LICENSE)
 
-Outil **portable** d'audit de la configuration de sécurité d'un poste ou serveur **Windows**. Un seul exécutable, sans installation : lancez-le sur la machine, il vérifie en quelques secondes ses failles de configuration locales et produit un **rapport** avec un score de conformité et, pour chaque problème, une explication simple et la commande PowerShell de correction.
+Outil **portable** d'audit de la configuration de sécurité d'un poste ou serveur **Windows**. Un seul exécutable, sans installation ni PowerShell en coulisse : lancez-le sur la machine, il vérifie en quelques secondes ses failles de configuration locales et produit un **rapport** avec un score de conformité et, pour chaque problème, une explication simple et la commande PowerShell de correction.
 
 Pensé pour les techniciens, indépendants et MSP qui interviennent dans des PME. Complémentaire d'[Arpent](https://github.com/maxb1906/arpent) : Arpent audite le réseau, Aplomb audite l'intérieur de chaque machine.
-
-> 🚧 **En cours de développement** — rien d'utilisable pour l'instant. L'avancement est suivi dans [docs/STRUCTURE.md](docs/STRUCTURE.md).
-
-## Ce qu'Aplomb vérifiera (v1)
-
-- **Services** : chemins sans guillemets exploitables, binaires, dossiers et clés de registre modifiables par des non-administrateurs.
-- **Tâches planifiées** : tâches SYSTEM pointant vers des fichiers inscriptibles, lignes de commande suspectes, tâches orphelines.
-- **Comptes et mots de passe** : politique de mots de passe et de verrouillage, comptes Invité et Administrateur, membres du groupe Administrateurs, LAPS.
-- **BitLocker** : volumes non chiffrés ou suspendus, protecteurs.
-- **Microsoft Defender** : protection en temps réel, protection contre les falsifications, signatures, exclusions trop larges.
-- **Partages SMB** : partages ouverts à tous, SMBv1, signature SMB, accès invité.
-- **Pare-feu Windows** : profils désactivés, règles entrantes trop permissives, ports sensibles exposés.
-- **Durcissement système** : UAC, RDP sans NLA, LLMNR/NetBIOS, WDigest, protection LSA, mises à jour, Secure Boot…
-
-Rapport HTML autonome, Markdown et JSON, en **français ou en anglais**, avec un script de remédiation `.ps1` dont chaque bloc est commenté par défaut.
 
 ## ⚖️ Lecture seule et cadre d'utilisation
 
@@ -30,28 +15,94 @@ Aplomb est un outil de **contrôle de conformité en lecture seule** : il **ne m
 
 Le rapport contient des informations sensibles (comptes, chemins, faiblesses) : traitez-le comme un document **confidentiel** et ne le laissez pas traîner sur une clé USB.
 
-Aplomb fonctionne sans droits administrateur, mais certains contrôles (BitLocker, exclusions Defender…) en ont besoin : ils sont alors marqués « non vérifié » et exclus du score.
+## Ce qu'Aplomb vérifie (57 règles)
 
-## Utilisation (prévue)
+| Catégorie | Exemples de contrôles |
+|---|---|
+| **Durcissement système** (13) | UAC, AlwaysInstallElevated, RDP sans NLA, LLMNR, NetBIOS, WDigest, protection LSA, Credential Guard, PowerShell 2.0, journalisation PowerShell, AutoRun, mises à jour, Secure Boot |
+| **Services** (5) | chemins sans guillemets exploitables, binaires/dossiers/clés de registre modifiables par des non-admins, service SYSTEM lancé depuis un dossier utilisateur, spouleur inutile sur serveur/DC |
+| **Tâches planifiées** (5) | tâche privilégiée lançant un fichier modifiable, emplacements à risque, commandes suspectes (PowerShell encodé, mshta, certutil…), tâches masquées, orphelines |
+| **Comptes et mots de passe** (10) | longueur minimale, verrouillage, expiration, complexité, Invité, Administrateur intégré, membres du groupe Administrateurs, comptes sans mot de passe, LAPS |
+| **BitLocker** (6) | disque système et volumes de données non chiffrés, protection suspendue, TPM seul sur portable, mot de passe de récupération, sauvegarde imposée |
+| **Microsoft Defender** (7) | temps réel, protection contre les falsifications, signatures, exclusions trop larges, cloud, PUA, règles ASR |
+| **Partages SMB** (6) | partages ouverts à tous en écriture/lecture (droits de partage **et** NTFS), SMBv1 serveur et client, signature, accès invité |
+| **Pare-feu Windows** (5) | profils désactivés, action entrante « Autoriser », règles tout/tout, ports sensibles ouverts sur le profil Public, programmes modifiables |
+
+`aplomb rules` liste toutes les règles. Elles sont définies dans [assets/rules.yaml](assets/rules.yaml) (règles maison ; références indicatives Microsoft, ANSSI et MITRE ATT&CK).
+
+Chaque règle s'applique selon le **profil** de la machine (poste, serveur membre, contrôleur de domaine), détecté automatiquement. Les niveaux sont **Info / Attention / Critique**, nuancés pour éviter les faux positifs (ex. un chemin sans guillemets n'est Critique que si un dossier intermédiaire est réellement inscriptible). Si un paramètre est imposé par **GPO ou Intune**, le rapport le signale : la correction doit se faire dans la stratégie.
+
+## Démarrage
+
+1. Téléchargez `aplomb_<version>_windows_amd64.zip` depuis les [Releases](https://github.com/maxb1906/aplomb/releases) et décompressez-le sur une clé USB.
+2. Lancez `aplomb.exe` **en tant qu'administrateur** (clic droit → « Exécuter en tant qu'administrateur ») : l'audit dure quelques secondes et le rapport HTML s'ouvre dans le navigateur.
+3. Les rapports sont rangés à côté de l'exécutable, un dossier par machine :
 
 ```
-aplomb.exe                                   # lance l'audit et ouvre le rapport
-aplomb.exe --out D:\rapports --format html,md,json --lang fr --profile serveur
-aplomb.exe help
+aplomb.exe
+aplomb-data/
+├── config.yaml
+└── rapports/
+    └── PC-ACCUEIL-01/
+        ├── 2026-11-25_1430.html              # rapport autonome, imprimable en PDF
+        ├── 2026-11-25_1430.md                # même contenu, pour un ticket ou un wiki
+        ├── 2026-11-25_1430.json              # résultats bruts + données collectées
+        └── 2026-11-25_1430_remediation.ps1   # corrections, toutes commentées
 ```
 
-Compatibilité visée : Windows 10/11 et Windows Server 2016+ (x64 ; ARM64 en bonus).
+Sans droits administrateur, Aplomb fonctionne en **mode dégradé** : les contrôles impossibles (BitLocker, exclusions Defender, droits des partages, protection LSA…) sont marqués « non vérifiés », exclus du score, et le taux de couverture est indiqué.
 
-## Compilation
+> **SmartScreen / antivirus** : l'exécutable n'est pas encore signé. Windows peut afficher « Windows a protégé votre ordinateur » : « Informations complémentaires » puis « Exécuter quand même ». Vérifiez l'empreinte avec le fichier `SHA256SUMS` de la release.
+
+## Score
+
+Score sur 100, global et par catégorie : chaque contrôle vérifié pèse 10 (Critique), 4 (Attention) ou 1 (Info) ; score = poids des contrôles conformes / poids des contrôles vérifiés. Note A (≥ 90) à E (< 40). **Un seul problème Critique plafonne la note à C** (score ramené à 74 au plus ; le score brut figure dans le rapport).
+
+## Remédiation
+
+Pour chaque problème, le rapport donne une commande PowerShell prête à copier et prévient de son impact (redémarrage, compatibilité…). Le script `…_remediation.ps1` regroupe toutes les corrections, **chacune commentée** : décommentez celles que vous retenez, puis lancez-le en administrateur sur la machine auditée (il refuse de tourner ailleurs). `-WhatIf` simule, et tout est journalisé dans un `.log` à côté du script. Les corrections d'un paramètre imposé par GPO sont précédées de `##` : corrigez plutôt la stratégie.
+
+## Ligne de commande
+
+```
+aplomb                                    # audit et ouverture du rapport (par défaut)
+aplomb audit --out D:\rapports --format html,md,json,ps1 --report-lang en --profile serveur --no-open
+aplomb config --technician "Nom" --company "Ma société" --logo logo.png
+aplomb collect --out machine.json         # données brutes, sans évaluation
+aplomb evaluate --input machine.json      # rapport à partir de données enregistrées (aussi sous Linux/macOS)
+aplomb rules | host | version | help      # aplomb <commande> -h pour les options
+```
+
+Options globales : `--lang fr|en` et `--data <dossier>` (ou variable `APLOMB_DATA`).
+
+## Configuration
+
+`aplomb-data/config.yaml` (créé au premier audit) : technicien, société et logo de la page de garde, langues de l'outil et du rapport, profil forcé, formats, et **règles désactivées** — leur défaut apparaît alors comme « risque accepté » avec la justification :
+
+```yaml
+disabled_rules:
+  - id: SMB-003
+    reason: "Copieur ancien en SMBv1, remplacement prévu en 2027"
+```
+
+## Compilation et tests
 
 Prérequis : [Go](https://go.dev/dl/) (version de `go.mod`). Aucun CGO : la cross-compilation vers Windows fonctionne depuis Linux ou macOS.
 
 ```sh
-make test        # tests
+make test        # tests (règles, score, rapports sur des fixtures JSON)
 make windows     # dist/aplomb-windows-amd64.exe
-make build-all   # tous les binaires Windows
-make all         # format, vet, tests et binaires
+make build-all   # windows/amd64 et windows/arm64
+make all         # format, vet (Linux et Windows), tests, binaires
 ```
+
+La CI exécute aussi l'exe sur Windows Server, vérifie la syntaxe des scripts de remédiation avec PowerShell 5.1 et 7, et rejoue le [laboratoire](lab/README.md) : une machine rendue volontairement vulnérable doit voir chaque faiblesse détectée. Les versions sont publiées par GoReleaser à chaque tag `vX.Y.Z`.
+
+## Contribuer
+
+- Règles : `assets/rules.yaml` (textes FR/EN, remédiation) et `internal/checks/<catégorie>/` (logique) ; chaque règle doit avoir les deux, ce que vérifient les tests.
+- Traductions : `assets/i18n/fr.json` et `en.json` (mêmes clés, vérifié par les tests).
+- Cadrage et décisions : [docs/STRUCTURE.md](docs/STRUCTURE.md).
 
 ## Licence
 

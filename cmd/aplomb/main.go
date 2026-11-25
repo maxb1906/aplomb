@@ -77,7 +77,7 @@ type command struct {
 var commands = map[string]command{}
 
 // order fixe l'ordre d'affichage des commandes dans l'aide.
-var order = []string{"audit", "collect", "evaluate", "host", "rules", "hello", "version", "help"}
+var order = []string{"audit", "collect", "evaluate", "config", "host", "rules", "hello", "version", "help"}
 
 // defaultCommand est lancée sans argument (double-clic sur l'exe).
 const defaultCommand = "audit"
@@ -87,6 +87,7 @@ func init() {
 	commands["collect"] = command{run: cmdCollect}
 	commands["evaluate"] = command{run: cmdEvaluate}
 	commands["host"] = command{run: cmdHost}
+	commands["config"] = command{run: cmdConfig}
 	commands["rules"] = command{run: cmdRules}
 	commands["hello"] = command{run: cmdHello}
 	commands["version"] = command{run: func(e *env, _ []string) int { fmt.Fprintln(e.stdout, version); return 0 }}
@@ -160,7 +161,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		name, rest = fs.Arg(0), fs.Args()[1:]
 	}
 	// La configuration n'est lue (et créée) que pour les commandes qui produisent un rapport.
-	if name == "audit" || name == "evaluate" {
+	if name == "audit" || name == "evaluate" || name == "config" {
 		e.loadConfig()
 	}
 	switch {

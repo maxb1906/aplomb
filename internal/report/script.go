@@ -96,15 +96,18 @@ func Script(w io.Writer, r *Report, o Options) error {
 			}
 			add(sep, "# ["+strings.ToUpper(tr.T("level."+lvl))+"] "+res.RuleID+" — "+oneLine(replaceParams(t.Title, f.Params)))
 			if f.Object != "" {
-				add("# " + tr.T("script.object") + " : " + oneLine(f.Object))
+				add("# " + tr.T("script.object") + tr.T("common.colon") + oneLine(f.Object))
 			}
 			if t.Impact != "" {
-				add(wrapComment(tr.T("script.impact") + " : " + oneLine(t.Impact))...)
+				add(wrapComment(tr.T("script.impact") + tr.T("common.colon") + oneLine(t.Impact))...)
+			}
+			if !f.GPO && t.GPO != "" {
+				add(wrapComment(tr.T("report.gpo_where") + tr.T("common.colon") + oneLine(t.GPO))...)
 			}
 			if f.GPO {
 				g := tr.T("script.gpo")
 				if t.GPO != "" {
-					g += " : " + oneLine(t.GPO)
+					g += tr.T("common.colon") + oneLine(t.GPO)
 				}
 				add(wrapComment(g)...)
 			}
