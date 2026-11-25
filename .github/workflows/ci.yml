@@ -71,3 +71,31 @@ jobs:
           }
           $out = & $exe --lang fr hello | Out-String
           if ($out -notmatch "Bonjour depuis Aplomb") { Write-Error "sortie inattendue : $out"; exit 1 }
+
+  remediation-syntax:
+    name: Syntaxe des scripts de remédiation (PowerShell 5.1 et 7)
+    needs: build
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: aplomb-binaries
+          path: dist
+      - name: Générer les scripts à partir des fixtures
+        shell: pwsh
+        run: |
+          $exe = "./dist/aplomb-windows-amd64.exe"
+          foreach ($f in Get-ChildItem testdata/snapshots/*.json) {
+            foreach ($lang in "fr", "en") {
+              & $exe --lang $lang --data "$env:RUNNER_TEMP\data" evaluate --input $f.FullName --out "$env:RUNNER_TEMP\ps1-$lang" --format ps1 --no-open
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            }
+          }
+      - name: Analyse (PowerShell 7)
+        shell: pwsh
+        run: ./tools/check-ps1.ps1 -Path "$env:RUNNER_TEMP"
+      - name: Analyse (Windows PowerShell 5.1)
+        shell: powershell
+        run: ./tools/check-ps1.ps1 -Path "$env:RUNNER_TEMP"
