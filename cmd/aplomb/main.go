@@ -32,6 +32,12 @@ type env struct {
 
 func (e *env) T(key string, pairs ...string) string { return e.tr.T(key, pairs...) }
 
+// fail affiche une erreur traduite et renvoie le code de sortie 1.
+func (e *env) fail(err error) int {
+	fmt.Fprintln(e.stderr, e.T("cli.error", "error", err.Error()))
+	return 1
+}
+
 type command struct {
 	run func(e *env, args []string) int
 }
@@ -39,13 +45,14 @@ type command struct {
 var commands = map[string]command{}
 
 // order fixe l'ordre d'affichage des commandes dans l'aide.
-var order = []string{"hello", "version", "help"}
+var order = []string{"host", "hello", "version", "help"}
 
 // defaultCommand est lancée sans argument (double-clic sur l'exe).
 const defaultCommand = "hello"
 
 func init() {
 	commands["hello"] = command{run: cmdHello}
+	commands["host"] = command{run: cmdHost}
 	commands["version"] = command{run: func(e *env, _ []string) int { fmt.Fprintln(e.stdout, version); return 0 }}
 	commands["help"] = command{run: func(e *env, _ []string) int { usage(e, e.stdout); return 0 }}
 }
