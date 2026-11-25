@@ -50,15 +50,17 @@ func (g Gaps) Get(component string) Gap {
 
 // Snapshot regroupe toutes les données collectées lors d'un audit.
 type Snapshot struct {
-	Schema      int       `json:"schema"`
-	Tool        string    `json:"tool"`
-	Version     string    `json:"version"`
-	CollectedAt time.Time `json:"collected_at"`
-	DurationMS  int64     `json:"duration_ms"`
-	Host        Host      `json:"host"`
-	Services    *Services `json:"services,omitempty"`
-	Tasks       *Tasks    `json:"tasks,omitempty"`
-	Accounts    *Accounts `json:"accounts,omitempty"`
+	Schema      int        `json:"schema"`
+	Tool        string     `json:"tool"`
+	Version     string     `json:"version"`
+	CollectedAt time.Time  `json:"collected_at"`
+	DurationMS  int64      `json:"duration_ms"`
+	Host        Host       `json:"host"`
+	Services    *Services  `json:"services,omitempty"`
+	Tasks       *Tasks     `json:"tasks,omitempty"`
+	Accounts    *Accounts  `json:"accounts,omitempty"`
+	BitLocker   *BitLocker `json:"bitlocker,omitempty"`
+	Defender    *Defender  `json:"defender,omitempty"`
 	// Gaps liste les sections entières non collectées (clé : nom de section).
 	Gaps Gaps `json:"gaps,omitempty"`
 }

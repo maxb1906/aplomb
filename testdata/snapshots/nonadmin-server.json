@@ -203,5 +203,37 @@
       "backup_directory": 0,
       "legacy": false
     }
+  },
+  "bitlocker": {
+    "gaps": {
+      "volumes": {
+        "reason": "requires_admin",
+        "detail": "0x80041003"
+      }
+    },
+    "backup_policy": false
+  },
+  "defender": {
+    "status": {
+      "running_mode": "Normal",
+      "am_service_enabled": true,
+      "antivirus_enabled": true,
+      "realtime": true,
+      "tamper": false,
+      "signature_age_days": 1
+    },
+    "prefs": {
+      "exclusions_visible": false,
+      "maps_reporting": 2,
+      "submit_samples": 1,
+      "pua": 1
+    },
+    "policy_exclusions": [
+      {
+        "kind": "path",
+        "value": "D:\\",
+        "policy": true
+      }
+    ]
   }
 }

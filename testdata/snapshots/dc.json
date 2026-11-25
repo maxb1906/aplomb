@@ -160,5 +160,30 @@
       "backup_directory": 0,
       "legacy": false
     }
+  },
+  "bitlocker": {
+    "gaps": {
+      "volumes": {
+        "reason": "absent",
+        "detail": "Invalid namespace"
+      }
+    },
+    "backup_policy": false
+  },
+  "defender": {
+    "status": {
+      "running_mode": "Passive Mode",
+      "am_service_enabled": true,
+      "antivirus_enabled": false,
+      "realtime": false,
+      "tamper": true,
+      "signature_age_days": 1
+    },
+    "prefs": {
+      "exclusions_visible": true,
+      "maps_reporting": 2,
+      "submit_samples": 1,
+      "pua": 1
+    }
   }
 }

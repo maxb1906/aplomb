@@ -725,3 +725,393 @@
         Windows LAPS is configured through GPO (Active Directory) or Intune (Entra ID);
         Update-LapsADSchema changes the AD schema and is run once per forest.
       gpo: Computer Configuration > Policies > Administrative Templates > System > LAPS > Configure password backup directory
+
+# ---------------------------------------------------------------- BitLocker
+- id: BDE-001
+  category: bitlocker
+  level: critical
+  admin: true
+  refs:
+    - name: "Microsoft — BitLocker"
+      url: https://learn.microsoft.com/windows/security/operating-system-security/data-protection/bitlocker/
+    - name: "MITRE ATT&CK T1005 — Data from Local System"
+      url: https://attack.mitre.org/techniques/T1005/
+  remediation: |
+    Enable-BitLocker -MountPoint {{ps .mount}} -EncryptionMethod XtsAes256 -UsedSpaceOnly -TpmProtector
+    Add-BitLockerKeyProtector -MountPoint {{ps .mount}} -RecoveryPasswordProtector
+    (Get-BitLockerVolume -MountPoint {{ps .mount}}).KeyProtector
+  text:
+    fr:
+      title: Disque système non chiffré
+      summary: >-
+        Le disque de Windows n'est pas chiffré. En cas de vol ou de perte de la machine (ou
+        du disque), toutes les données sont lisibles par n'importe qui.
+      detail: >-
+        Win32_EncryptableVolume du volume système : ConversionStatus = déchiffré. Critique
+        sur un appareil portable, Attention sur un poste fixe ou un serveur.
+      impact: >-
+        Noter et sauvegarder la clé de récupération (AD, Entra ID ou coffre) AVANT le
+        redémarrage. Le chiffrement se fait en arrière-plan ; un redémarrage peut être
+        demandé pour tester le TPM.
+      gpo: Configuration ordinateur > Modèles d'administration > Composants Windows > Chiffrement de lecteur BitLocker
+    en:
+      title: System drive not encrypted
+      summary: >-
+        The Windows drive is not encrypted. If the machine (or the disk) is stolen or lost,
+        all data can be read by anyone.
+      detail: >-
+        Win32_EncryptableVolume of the system volume: ConversionStatus = decrypted.
+        Critical on a portable device, Warning on a desktop or server.
+      impact: >-
+        Write down and back up the recovery key (AD, Entra ID or a vault) BEFORE
+        restarting. Encryption runs in the background; a restart may be requested to test
+        the TPM.
+      gpo: Computer Configuration > Administrative Templates > Windows Components > BitLocker Drive Encryption
+
+- id: BDE-002
+  category: bitlocker
+  level: critical
+  admin: true
+  refs:
+    - name: "Microsoft — BitLocker"
+      url: https://learn.microsoft.com/windows/security/operating-system-security/data-protection/bitlocker/
+  remediation: |
+    Resume-BitLocker -MountPoint {{ps .mount}}
+    Get-BitLockerVolume -MountPoint {{ps .mount}}
+  text:
+    fr:
+      title: Protection BitLocker suspendue
+      summary: >-
+        Le disque est chiffré mais la protection est suspendue : la clé est stockée en clair
+        sur le disque, qui est donc lisible comme s'il n'était pas chiffré.
+      detail: >-
+        Volume chiffré (ConversionStatus 1 ou 4) avec ProtectionStatus = 0 : protection
+        suspendue (souvent après une mise à jour du BIOS) ou chiffrement de l'appareil en
+        attente d'activation.
+      impact: Si aucun protecteur n'existe (chiffrement en attente), ajouter d'abord un protecteur TPM et un mot de passe de récupération.
+    en:
+      title: BitLocker protection suspended
+      summary: >-
+        The drive is encrypted but protection is suspended: the key is stored in clear on
+        the disk, which can therefore be read as if it were not encrypted.
+      detail: >-
+        Encrypted volume (ConversionStatus 1 or 4) with ProtectionStatus = 0: suspended
+        protection (often after a BIOS update) or device encryption waiting for activation.
+      impact: If no protector exists (encryption pending), first add a TPM protector and a recovery password.
+
+- id: BDE-003
+  category: bitlocker
+  level: info
+  admin: true
+  profiles: [workstation]
+  refs:
+    - name: "Microsoft — BitLocker countermeasures"
+      url: https://learn.microsoft.com/windows/security/operating-system-security/data-protection/bitlocker/countermeasures
+  remediation: |
+    Add-BitLockerKeyProtector -MountPoint {{ps .mount}} -TpmAndPinProtector -Pin (Read-Host -AsSecureString 'PIN')
+  text:
+    fr:
+      title: Portable protégé par le TPM seul, sans code PIN
+      summary: >-
+        Le portable déverrouille son disque automatiquement au démarrage. Un voleur équipé
+        peut tenter des attaques matérielles ; un code PIN au démarrage les bloque.
+      detail: >-
+        Protecteurs du volume système : TPM, sans TPM+PIN ni clé de démarrage.
+      impact: >-
+        L'utilisateur devra saisir le PIN à chaque démarrage. La stratégie « Exiger une
+        authentification supplémentaire au démarrage » doit autoriser le PIN.
+      gpo: Configuration ordinateur > Modèles d'administration > Composants Windows > Chiffrement de lecteur BitLocker > Lecteurs du système d'exploitation > Exiger une authentification supplémentaire au démarrage
+    en:
+      title: Laptop protected by TPM only, without a PIN
+      summary: >-
+        The laptop unlocks its disk automatically at startup. A well-equipped thief can try
+        hardware attacks; a startup PIN blocks them.
+      detail: System volume protectors — TPM, without TPM+PIN or startup key.
+      impact: >-
+        The user will have to type the PIN at every startup. The "Require additional
+        authentication at startup" policy must allow a PIN.
+      gpo: Computer Configuration > Administrative Templates > Windows Components > BitLocker Drive Encryption > Operating System Drives > Require additional authentication at startup
+
+- id: BDE-004
+  category: bitlocker
+  level: warning
+  admin: true
+  refs:
+    - name: "Microsoft — BitLocker recovery overview"
+      url: https://learn.microsoft.com/windows/security/operating-system-security/data-protection/bitlocker/recovery-overview
+  remediation: |
+    Add-BitLockerKeyProtector -MountPoint {{ps .mount}} -RecoveryPasswordProtector
+    $kp = (Get-BitLockerVolume -MountPoint {{ps .mount}}).KeyProtector | Where-Object KeyProtectorType -eq 'RecoveryPassword' | Select-Object -First 1
+    {{if eq .join "domain"}}Backup-BitLockerKeyProtector -MountPoint {{ps .mount}} -KeyProtectorId $kp.KeyProtectorId{{else if .entra}}BackupToAAD-BitLockerKeyProtector -MountPoint {{ps .mount}} -KeyProtectorId $kp.KeyProtectorId{{else}}$kp.RecoveryPassword{{end}}
+  text:
+    fr:
+      title: Volume chiffré sans mot de passe de récupération
+      summary: >-
+        Ce volume chiffré n'a pas de mot de passe de récupération : en cas de panne du TPM,
+        de changement de carte mère ou de mise à jour du BIOS, les données seraient perdues.
+      detail: Aucun protecteur de type RecoveryPassword (numérique) sur un volume chiffré.
+      impact: Conserver le mot de passe de récupération en lieu sûr (AD, Entra ID, coffre-fort), jamais sur la machine elle-même.
+    en:
+      title: Encrypted volume without a recovery password
+      summary: >-
+        This encrypted volume has no recovery password: if the TPM fails, the motherboard is
+        replaced or the BIOS is updated, the data would be lost.
+      detail: No RecoveryPassword (numerical) protector on an encrypted volume.
+      impact: Keep the recovery password somewhere safe (AD, Entra ID, a vault), never on the machine itself.
+
+- id: BDE-005
+  category: bitlocker
+  level: warning
+  admin: true
+  refs:
+    - name: "Microsoft — BitLocker"
+      url: https://learn.microsoft.com/windows/security/operating-system-security/data-protection/bitlocker/
+  remediation: |
+    Enable-BitLocker -MountPoint {{ps .mount}} -EncryptionMethod XtsAes256 -UsedSpaceOnly -RecoveryPasswordProtector
+    Enable-BitLockerAutoUnlock -MountPoint {{ps .mount}}
+  text:
+    fr:
+      title: Volume de données non chiffré
+      summary: >-
+        Un disque ou une partition de données n'est pas chiffré : son contenu est lisible si
+        le disque est volé ou réutilisé.
+      detail: Volume fixe de données (VolumeType 1) avec une lettre de lecteur et ConversionStatus = déchiffré.
+      impact: Le déverrouillage automatique exige que le volume système soit chiffré ; sauvegarder la clé de récupération.
+    en:
+      title: Data volume not encrypted
+      summary: >-
+        A data disk or partition is not encrypted: its content can be read if the disk is
+        stolen or reused.
+      detail: Fixed data volume (VolumeType 1) with a drive letter and ConversionStatus = decrypted.
+      impact: Auto-unlock requires the system volume to be encrypted; back up the recovery key.
+
+- id: BDE-006
+  category: bitlocker
+  level: info
+  admin: true
+  refs:
+    - name: "Microsoft — BitLocker recovery overview"
+      url: https://learn.microsoft.com/windows/security/operating-system-security/data-protection/bitlocker/recovery-overview
+  remediation: |
+    $kp = (Get-BitLockerVolume -MountPoint {{ps .mount}}).KeyProtector | Where-Object KeyProtectorType -eq 'RecoveryPassword' | Select-Object -First 1
+    {{if .entra}}BackupToAAD-BitLockerKeyProtector{{else}}Backup-BitLockerKeyProtector{{end}} -MountPoint {{ps .mount}} -KeyProtectorId $kp.KeyProtectorId
+  text:
+    fr:
+      title: Sauvegarde des clés de récupération non imposée
+      summary: >-
+        Aucune stratégie n'oblige à sauvegarder la clé de récupération BitLocker dans
+        l'annuaire. Il n'est pas possible de vérifier depuis la machine que la clé y est
+        bien : à contrôler dans AD ou Entra ID.
+      detail: >-
+        Machine jointe, volume système chiffré, et ni OSRequireActiveDirectoryBackup ni
+        OSActiveDirectoryBackup dans HKLM\SOFTWARE\Policies\Microsoft\FVE.
+      gpo: Configuration ordinateur > Modèles d'administration > Composants Windows > Chiffrement de lecteur BitLocker > Lecteurs du système d'exploitation > Choisir comment les lecteurs du système d'exploitation protégés par BitLocker peuvent être récupérés
+    en:
+      title: Recovery key backup not enforced
+      summary: >-
+        No policy requires the BitLocker recovery key to be backed up to the directory. It
+        cannot be checked from the machine that the key is actually there: verify it in AD
+        or Entra ID.
+      detail: >-
+        Joined machine, encrypted system volume, and neither OSRequireActiveDirectoryBackup
+        nor OSActiveDirectoryBackup in HKLM\SOFTWARE\Policies\Microsoft\FVE.
+      gpo: Computer Configuration > Administrative Templates > Windows Components > BitLocker Drive Encryption > Operating System Drives > Choose how BitLocker-protected operating system drives can be recovered
+
+# ---------------------------------------------------------------- Microsoft Defender
+- id: DEF-001
+  category: defender
+  level: critical
+  refs:
+    - name: "MITRE ATT&CK T1562.001 — Disable or Modify Tools"
+      url: https://attack.mitre.org/techniques/T1562/001/
+  remediation: |
+    Set-MpPreference -DisableRealtimeMonitoring $false
+    Get-MpComputerStatus | Select-Object AntivirusEnabled, RealTimeProtectionEnabled
+  text:
+    fr:
+      title: Protection antivirus en temps réel désactivée
+      summary: >-
+        La protection en temps réel de Microsoft Defender est désactivée et aucun autre
+        antivirus actif n'a été détecté : les fichiers malveillants ne sont pas bloqués.
+      detail: MSFT_MpComputerStatus — RealTimeProtectionEnabled ou AntivirusEnabled = faux, mode Normal.
+      gpo: Configuration ordinateur > Modèles d'administration > Composants Windows > Antivirus Microsoft Defender > Protection en temps réel > Désactiver la protection en temps réel
+    en:
+      title: Real-time antivirus protection disabled
+      summary: >-
+        Microsoft Defender real-time protection is disabled and no other active antivirus
+        was found: malicious files are not blocked.
+      detail: MSFT_MpComputerStatus — RealTimeProtectionEnabled or AntivirusEnabled = false, Normal mode.
+      gpo: Computer Configuration > Administrative Templates > Windows Components > Microsoft Defender Antivirus > Real-time Protection > Turn off real-time protection
+
+- id: DEF-002
+  category: defender
+  level: warning
+  profiles: [workstation]
+  refs:
+    - name: "Microsoft — Tamper protection"
+      url: https://learn.microsoft.com/defender-endpoint/prevent-changes-to-security-settings-with-tamper-protection
+    - name: "MITRE ATT&CK T1562.001 — Disable or Modify Tools"
+      url: https://attack.mitre.org/techniques/T1562/001/
+  remediation: |
+    Start-Process 'windowsdefender://threatsettings'
+  text:
+    fr:
+      title: Protection contre les falsifications désactivée
+      summary: >-
+        Un logiciel malveillant ayant obtenu les droits d'administration peut désactiver
+        Defender. La protection contre les falsifications l'en empêche.
+      detail: MSFT_MpComputerStatus — IsTamperProtected = faux.
+      impact: >-
+        Se règle dans Sécurité Windows > Protection contre les virus et menaces > Gérer les
+        paramètres, ou dans Intune ; pas par PowerShell.
+    en:
+      title: Tamper protection disabled
+      summary: >-
+        Malware that has obtained administrator rights can turn Defender off. Tamper
+        protection prevents it.
+      detail: MSFT_MpComputerStatus — IsTamperProtected = false.
+      impact: >-
+        Set it in Windows Security > Virus & threat protection > Manage settings, or in
+        Intune; not through PowerShell.
+
+- id: DEF-003
+  category: defender
+  level: warning
+  refs:
+    - name: "Microsoft — Microsoft Defender Antivirus security intelligence updates"
+      url: https://learn.microsoft.com/defender-endpoint/microsoft-defender-antivirus-updates
+  remediation: |
+    Update-MpSignature
+  text:
+    fr:
+      title: Signatures antivirus anciennes
+      summary: >-
+        Les signatures de Microsoft Defender ont {days} jours : les menaces récentes ne sont
+        pas reconnues.
+      detail: MSFT_MpComputerStatus — AntivirusSignatureAge supérieur à 7 jours.
+      impact: Si la mise à jour échoue, vérifier l'accès à Windows Update ou au serveur WSUS.
+    en:
+      title: Outdated antivirus signatures
+      summary: >-
+        Microsoft Defender signatures are {days} days old: recent threats are not
+        recognised.
+      detail: MSFT_MpComputerStatus — AntivirusSignatureAge above 7 days.
+      impact: If the update fails, check access to Windows Update or the WSUS server.
+
+- id: DEF-004
+  category: defender
+  level: critical
+  admin: true
+  refs:
+    - name: "MITRE ATT&CK T1562.001 — Disable or Modify Tools"
+      url: https://attack.mitre.org/techniques/T1562/001/
+    - name: "Microsoft — Common mistakes to avoid when defining exclusions"
+      url: https://learn.microsoft.com/defender-endpoint/common-exclusion-mistakes-microsoft-defender-antivirus
+  remediation: |
+    Remove-MpPreference {{.flag}} {{ps .value}}
+  text:
+    fr:
+      title: Exclusion antivirus trop large
+      summary: >-
+        Microsoft Defender ignore une partie importante de la machine (un lecteur entier, les
+        profils, les dossiers temporaires ou des types de fichiers exécutables). Un
+        logiciel malveillant n'a qu'à s'y placer pour ne pas être détecté.
+      detail: >-
+        Exclusions de chemin (lecteur, \Users, \Temp, AppData, Téléchargements…),
+        d'extension (exe, dll, ps1, bat…) ou de processus (powershell, cmd, mshta…).
+        Lecture des exclusions locales : droits administrateur requis ; celles imposées par
+        stratégie sont visibles sans.
+      impact: Vérifier avec l'éditeur du logiciel concerné quelles exclusions précises sont nécessaires avant de supprimer.
+      gpo: Configuration ordinateur > Modèles d'administration > Composants Windows > Antivirus Microsoft Defender > Exclusions
+    en:
+      title: Overly broad antivirus exclusion
+      summary: >-
+        Microsoft Defender ignores a large part of the machine (a whole drive, user
+        profiles, temporary folders or executable file types). Malware only has to sit there
+        to go undetected.
+      detail: >-
+        Path exclusions (drive, \Users, \Temp, AppData, Downloads…), extension exclusions
+        (exe, dll, ps1, bat…) or process exclusions (powershell, cmd, mshta…). Reading local
+        exclusions requires administrator rights; policy ones are visible without.
+      impact: Check with the software vendor which specific exclusions are needed before removing.
+      gpo: Computer Configuration > Administrative Templates > Windows Components > Microsoft Defender Antivirus > Exclusions
+
+- id: DEF-005
+  category: defender
+  level: info
+  refs:
+    - name: "Microsoft — Cloud protection and Microsoft Defender Antivirus"
+      url: https://learn.microsoft.com/defender-endpoint/cloud-protection-microsoft-defender-antivirus
+  remediation: |
+    Set-MpPreference -MAPSReporting Advanced -SubmitSamplesConsent SendSafeSamples
+  text:
+    fr:
+      title: Protection dans le cloud désactivée
+      summary: >-
+        La protection fournie par le cloud de Defender (ou l'envoi automatique d'échantillons)
+        est désactivée : les nouvelles menaces sont détectées plus tard.
+      detail: MSFT_MpPreference — MAPSReporting = 0 ou SubmitSamplesConsent = 2 (jamais).
+      gpo: Configuration ordinateur > Modèles d'administration > Composants Windows > Antivirus Microsoft Defender > MAPS
+    en:
+      title: Cloud-delivered protection disabled
+      summary: >-
+        Defender cloud-delivered protection (or automatic sample submission) is disabled:
+        new threats are detected later.
+      detail: MSFT_MpPreference — MAPSReporting = 0 or SubmitSamplesConsent = 2 (never).
+      gpo: Computer Configuration > Administrative Templates > Windows Components > Microsoft Defender Antivirus > MAPS
+
+- id: DEF-006
+  category: defender
+  level: info
+  refs:
+    - name: "Microsoft — Detect and block potentially unwanted applications"
+      url: https://learn.microsoft.com/defender-endpoint/detect-block-potentially-unwanted-apps-microsoft-defender-antivirus
+  remediation: |
+    Set-MpPreference -PUAProtection Enabled
+  text:
+    fr:
+      title: Blocage des applications potentiellement indésirables désactivé
+      summary: >-
+        Defender laisse s'installer les logiciels potentiellement indésirables (barres
+        d'outils, publiciels, mineurs de cryptomonnaie…).
+      detail: MSFT_MpPreference — PUAProtection = 0.
+      gpo: Configuration ordinateur > Modèles d'administration > Composants Windows > Antivirus Microsoft Defender > Configurer la détection des applications potentiellement indésirables
+    en:
+      title: Potentially unwanted application blocking disabled
+      summary: >-
+        Defender lets potentially unwanted software install (toolbars, adware, cryptocurrency
+        miners…).
+      detail: MSFT_MpPreference — PUAProtection = 0.
+      gpo: Computer Configuration > Administrative Templates > Windows Components > Microsoft Defender Antivirus > Configure detection for potentially unwanted applications
+
+- id: DEF-007
+  category: defender
+  level: info
+  refs:
+    - name: "Microsoft — Attack surface reduction rules"
+      url: https://learn.microsoft.com/defender-endpoint/attack-surface-reduction
+  remediation: |
+    Add-MpPreference -AttackSurfaceReductionRules_Ids 9e6c4e1f-7d60-472f-ba1a-a39ef669e4b2 -AttackSurfaceReductionRules_Actions AuditMode
+  text:
+    fr:
+      title: Aucune règle de réduction de la surface d'attaque
+      summary: >-
+        Aucune règle de réduction de la surface d'attaque (ASR) n'est active. Ces règles
+        bloquent des comportements typiques des attaques (macros Office qui lancent des
+        programmes, vol de mots de passe en mémoire…).
+      detail: >-
+        MSFT_MpPreference — aucune règle ASR en mode Bloquer, Audit ou Avertir. La commande
+        proposée active en audit la règle qui protège LSASS contre le vol d'identifiants.
+      impact: Commencer en mode Audit et consulter les journaux avant de passer en mode Bloquer.
+      gpo: Configuration ordinateur > Modèles d'administration > Composants Windows > Antivirus Microsoft Defender > Microsoft Defender Exploit Guard > Réduction de la surface d'attaque
+    en:
+      title: No attack surface reduction rule
+      summary: >-
+        No attack surface reduction (ASR) rule is active. These rules block behaviours
+        typical of attacks (Office macros launching programs, credential theft from
+        memory…).
+      detail: >-
+        MSFT_MpPreference — no ASR rule in Block, Audit or Warn mode. The suggested command
+        enables, in audit mode, the rule that protects LSASS against credential theft.
+      impact: Start in Audit mode and review the logs before switching to Block mode.
+      gpo: Computer Configuration > Administrative Templates > Windows Components > Microsoft Defender Antivirus > Microsoft Defender Exploit Guard > Attack Surface Reduction

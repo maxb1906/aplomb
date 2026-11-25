@@ -225,5 +225,68 @@
       "backup_directory": 2,
       "legacy": false
     }
+  },
+  "bitlocker": {
+    "volumes": [
+      {
+        "mount": "C:",
+        "type": 0,
+        "conversion": 1,
+        "protection": 1,
+        "protectors_known": true,
+        "protectors": [
+          "tpm_pin",
+          "recovery_password"
+        ]
+      },
+      {
+        "mount": "D:",
+        "type": 1,
+        "conversion": 1,
+        "protection": 1,
+        "protectors_known": true,
+        "protectors": [
+          "recovery_password",
+          "external_key"
+        ]
+      },
+      {
+        "mount": "",
+        "type": 1,
+        "conversion": 0,
+        "protection": 0,
+        "protectors_known": true
+      }
+    ],
+    "backup_policy": true
+  },
+  "defender": {
+    "status": {
+      "running_mode": "Normal",
+      "am_service_enabled": true,
+      "antivirus_enabled": true,
+      "realtime": true,
+      "tamper": true,
+      "signature_age_days": 1
+    },
+    "prefs": {
+      "exclusions_visible": true,
+      "maps_reporting": 2,
+      "submit_samples": 1,
+      "pua": 1,
+      "exclusions": [
+        {
+          "kind": "path",
+          "value": "C:\\Program Files\\Veeam\\Backup"
+        }
+      ],
+      "asr": [
+        {
+          "id": "9e6c4e1f-7d60-472f-ba1a-a39ef669e4b2",
+          "action": 1
+        }
+      ]
+    },
+    "other_av": []
   }
 }

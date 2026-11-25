@@ -676,5 +676,63 @@
       "backup_directory": 0,
       "legacy": false
     }
+  },
+  "bitlocker": {
+    "volumes": [
+      {
+        "mount": "C:",
+        "type": 0,
+        "conversion": 0,
+        "protection": 0,
+        "protectors_known": true
+      },
+      {
+        "mount": "D:",
+        "type": 1,
+        "conversion": 0,
+        "protection": 0,
+        "protectors_known": true
+      },
+      {
+        "mount": "E:",
+        "type": 2,
+        "conversion": 0,
+        "protection": 0,
+        "protectors_known": true
+      }
+    ],
+    "backup_policy": false
+  },
+  "defender": {
+    "status": {
+      "running_mode": "Normal",
+      "am_service_enabled": true,
+      "antivirus_enabled": false,
+      "realtime": false,
+      "tamper": false,
+      "signature_age_days": 20
+    },
+    "prefs": {
+      "exclusions_visible": true,
+      "maps_reporting": 0,
+      "submit_samples": 2,
+      "pua": 0,
+      "exclusions": [
+        {
+          "kind": "path",
+          "value": "C:\\Users"
+        },
+        {
+          "kind": "extension",
+          "value": "exe"
+        },
+        {
+          "kind": "path",
+          "value": "C:\\Program Files\\Veeam"
+        }
+      ]
+    },
+    "other_av": [],
+    "policy_realtime_off": true
   }
 }

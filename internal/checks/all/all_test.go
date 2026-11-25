@@ -110,6 +110,8 @@ func TestHealthyWorkstation(t *testing.T) {
 		"TSK-001": "pass", "TSK-002": "pass", "TSK-003": "pass", "TSK-004": "pass", "TSK-005": "pass",
 		"ACC-001": "pass", "ACC-002": "pass", "ACC-003": "pass", "ACC-004": "pass", "ACC-005": "pass",
 		"ACC-006": "pass", "ACC-007": "pass", "ACC-008": "pass", "ACC-009": "pass", "ACC-010": "pass",
+		"BDE-001": "pass", "BDE-002": "pass", "BDE-003": "pass", "BDE-004": "pass", "BDE-005": "pass", "BDE-006": "pass",
+		"DEF-001": "pass", "DEF-002": "pass", "DEF-003": "pass", "DEF-004": "pass", "DEF-005": "pass", "DEF-006": "pass", "DEF-007": "pass",
 	})
 	for id, r := range got {
 		if r.Status == rules.Fail {
@@ -165,6 +167,7 @@ func TestNonAdminServer(t *testing.T) {
 		"SVC-005": "fail/warning",
 		"TSK-001": "pass",
 		"ACC-001": "fail/warning", "ACC-007": "not_checked", "ACC-010": "fail/warning",
+		"BDE-001": "not_checked", "DEF-002": "not_applicable", "DEF-004": "fail/critical", "DEF-001": "pass",
 	})
 	if !got["ACC-001"].GPO || !strings.Contains(got["ACC-010"].Findings[0].Remediation, "OU=Serveurs,DC=corp,DC=example") {
 		t.Errorf("domaine : GPO et OU attendues (%+v)", got["ACC-010"])
@@ -184,7 +187,38 @@ func TestDC(t *testing.T) {
 		"SVC-005": "fail", // spouleur actif sur un DC, même avec une imprimante
 		"TSK-001": "not_checked",
 		"ACC-001": "fail", "ACC-002": "fail", "ACC-006": "not_applicable", "ACC-007": "pass", "ACC-010": "not_applicable",
+		"BDE-001": "not_applicable", "DEF-001": "not_applicable", "DEF-004": "not_applicable",
 	})
+}
+
+// Sans admin et sans exclusion imposée par GPO, les exclusions ne sont pas vérifiables.
+func TestDefenderExclusionsHidden(t *testing.T) {
+	s := fixture(t, "nonadmin-server")
+	s.Defender.PolicyExclusions = nil
+	res, err := catalog(t).Evaluate(s, rules.Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, r := range res {
+		if r.RuleID == "DEF-004" && (r.Status != rules.NotChecked || r.Reason != "requires_admin") {
+			t.Errorf("DEF-004 = %s (%s)", r.Status, r.Reason)
+		}
+	}
+}
+
+// Un antivirus tiers actif rend les contrôles Defender non applicables.
+func TestOtherAntivirus(t *testing.T) {
+	s := fixture(t, "vulnerable-workstation")
+	s.Defender.OtherAV = []string{"ESET Security"}
+	res, err := catalog(t).Evaluate(s, rules.Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, r := range res {
+		if r.Category == "defender" && r.Status != rules.NotApplicable {
+			t.Errorf("%s = %s, attendu not_applicable", r.RuleID, r.Status)
+		}
+	}
 }
 
 func TestAcceptedRisk(t *testing.T) {
