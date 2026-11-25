@@ -63,6 +63,7 @@ type Snapshot struct {
 	Defender    *Defender  `json:"defender,omitempty"`
 	SMB         *SMB       `json:"smb,omitempty"`
 	Firewall    *Firewall  `json:"firewall,omitempty"`
+	System      *System    `json:"system,omitempty"`
 	// Gaps liste les sections entières non collectées (clé : nom de section).
 	Gaps Gaps `json:"gaps,omitempty"`
 }

@@ -81,6 +81,7 @@
   "note.other_fw": "A third-party firewall is active ({a0})",
   "note.partial_tasks": "Partial check: without administrator rights, other accounts' tasks are not visible",
   "note.profile": "Does not apply to this kind of machine ({a0})",
+  "note.rdp_off": "Remote Desktop disabled",
   "reason.absent": "Feature not present on this machine",
   "reason.error": "Error during collection",
   "reason.requires_admin": "Requires administrator rights",

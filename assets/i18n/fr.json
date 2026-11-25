@@ -81,6 +81,7 @@
   "note.other_fw": "Un pare-feu tiers est actif ({a0})",
   "note.partial_tasks": "Vérification partielle : sans droits administrateur, les tâches des autres comptes ne sont pas visibles",
   "note.profile": "Ne concerne pas ce type de machine ({a0})",
+  "note.rdp_off": "Bureau à distance désactivé",
   "reason.absent": "Fonctionnalité absente sur cette machine",
   "reason.error": "Erreur pendant la collecte",
   "reason.requires_admin": "Nécessite les droits administrateur",

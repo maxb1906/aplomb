@@ -399,5 +399,103 @@
       }
     ],
     "other_fw": []
+  },
+  "system": {
+    "values": {
+      "uac_lua": {
+        "path": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+        "name": "EnableLUA",
+        "exists": true,
+        "num": 1
+      },
+      "uac_consent_admin": {
+        "path": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+        "name": "ConsentPromptBehaviorAdmin",
+        "exists": true,
+        "num": 5
+      },
+      "aie_hklm": {
+        "path": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer",
+        "name": "AlwaysInstallElevated",
+        "exists": false
+      },
+      "aie_hkcu": {
+        "path": "HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer",
+        "name": "AlwaysInstallElevated",
+        "exists": false
+      },
+      "rdp_deny": {
+        "path": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server",
+        "name": "fDenyTSConnections",
+        "exists": true,
+        "num": 1
+      },
+      "rdp_nla": {
+        "path": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\RDP-Tcp",
+        "name": "UserAuthentication",
+        "exists": false
+      },
+      "llmnr": {
+        "path": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows NT\\DNSClient",
+        "name": "EnableMulticast",
+        "exists": true,
+        "num": 0,
+        "policy": true
+      },
+      "wdigest": {
+        "path": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\WDigest",
+        "name": "UseLogonCredential",
+        "exists": true,
+        "num": 0
+      },
+      "runasppl": {
+        "path": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Lsa",
+        "name": "RunAsPPL",
+        "exists": true,
+        "num": 1
+      },
+      "runasppl_boot": {
+        "path": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Lsa",
+        "name": "RunAsPPLBoot",
+        "exists": false
+      },
+      "lsacfgflags": {
+        "path": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Lsa",
+        "name": "LsaCfgFlags",
+        "exists": false
+      },
+      "sbl": {
+        "path": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging",
+        "name": "EnableScriptBlockLogging",
+        "exists": true,
+        "num": 1,
+        "policy": true
+      },
+      "nodrivetypeautorun": {
+        "path": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer",
+        "name": "NoDriveTypeAutoRun",
+        "exists": true,
+        "num": 255
+      },
+      "noautorun": {
+        "path": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer",
+        "name": "NoAutorun",
+        "exists": false
+      },
+      "psv2_engine": {
+        "path": "HKLM\\SOFTWARE\\Microsoft\\PowerShell\\1\\PowerShellEngine",
+        "name": "PowerShellVersion",
+        "exists": false
+      }
+    },
+    "netbios": [
+      {
+        "id": "{A1}",
+        "options": 2
+      }
+    ],
+    "lsa_protected": true,
+    "credential_guard": true,
+    "psv2": false
   }
 }

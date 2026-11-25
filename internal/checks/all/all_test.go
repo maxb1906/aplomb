@@ -114,6 +114,8 @@ func TestHealthyWorkstation(t *testing.T) {
 		"DEF-001": "pass", "DEF-002": "pass", "DEF-003": "pass", "DEF-004": "pass", "DEF-005": "pass", "DEF-006": "pass", "DEF-007": "pass",
 		"SMB-001": "pass", "SMB-002": "pass", "SMB-003": "pass", "SMB-004": "pass", "SMB-005": "pass", "SMB-006": "pass",
 		"FW-001": "pass", "FW-002": "pass", "FW-003": "pass", "FW-004": "pass", "FW-005": "pass",
+		"SYS-001": "pass", "SYS-002": "pass", "SYS-003": "not_applicable", "SYS-004": "pass", "SYS-005": "pass", "SYS-006": "pass",
+		"SYS-007": "pass", "SYS-008": "pass", "SYS-009": "pass", "SYS-010": "pass", "SYS-011": "pass",
 	})
 	for id, r := range got {
 		if r.Status == rules.Fail {
@@ -172,6 +174,7 @@ func TestNonAdminServer(t *testing.T) {
 		"BDE-001": "not_checked", "DEF-002": "not_applicable", "DEF-004": "fail/critical", "DEF-001": "pass",
 		"SMB-001": "not_checked", "SMB-002": "not_checked", "SMB-005": "fail/warning",
 		"FW-001": "pass", "FW-004": "pass",
+		"SYS-002": "fail/warning", "SYS-005": "pass", "SYS-007": "not_checked", "SYS-008": "not_checked", "SYS-011": "pass",
 	})
 	if !got["ACC-001"].GPO || !strings.Contains(got["ACC-010"].Findings[0].Remediation, "OU=Serveurs,DC=corp,DC=example") {
 		t.Errorf("domaine : GPO et OU attendues (%+v)", got["ACC-010"])

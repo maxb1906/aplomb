@@ -1440,3 +1440,327 @@
         would only have to take its place to be reachable from the network.
       detail: Enabled inbound rule limited to a program whose file or folder is writable by non-administrators.
       impact: Only explicit entries are removed; check that the program still works.
+
+# ---------------------------------------------------------------- Durcissement système (suite)
+- id: SYS-001
+  category: system
+  level: critical
+  refs:
+    - name: "Microsoft — User Account Control"
+      url: https://learn.microsoft.com/windows/security/application-security/application-control/user-account-control/
+    - name: "MITRE ATT&CK T1548.002 — Bypass User Account Control"
+      url: https://attack.mitre.org/techniques/T1548/002/
+  remediation: |
+    Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name EnableLUA -Value 1 -Type DWord
+    Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name ConsentPromptBehaviorAdmin -Value 5 -Type DWord
+  text:
+    fr:
+      title: Contrôle de compte d'utilisateur (UAC) désactivé
+      summary: >-
+        L'UAC est désactivé ou réglé pour élever les droits sans rien demander : tout
+        programme lancé par un administrateur obtient silencieusement les pleins pouvoirs.
+      detail: EnableLUA = 0, ou ConsentPromptBehaviorAdmin = 0 (élévation sans invite).
+      impact: Redémarrage nécessaire. Les administrateurs verront de nouveau les demandes de confirmation.
+      gpo: Configuration ordinateur > Stratégies > Paramètres Windows > Paramètres de sécurité > Stratégies locales > Options de sécurité > Contrôle de compte d'utilisateur
+    en:
+      title: User Account Control (UAC) disabled
+      summary: >-
+        UAC is disabled or set to elevate without asking: any program started by an
+        administrator silently gets full control.
+      detail: EnableLUA = 0, or ConsentPromptBehaviorAdmin = 0 (elevate without prompting).
+      impact: A restart is required. Administrators will see confirmation prompts again.
+      gpo: Computer Configuration > Policies > Windows Settings > Security Settings > Local Policies > Security Options > User Account Control
+
+- id: SYS-002
+  category: system
+  level: critical
+  refs:
+    - name: "Microsoft — AlwaysInstallElevated"
+      url: https://learn.microsoft.com/windows/win32/msi/alwaysinstallelevated
+    - name: "MITRE ATT&CK T1218.007 — Msiexec"
+      url: https://attack.mitre.org/techniques/T1218/007/
+  remediation: |
+    Remove-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Installer' -Name AlwaysInstallElevated -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path 'HKCU:\SOFTWARE\Policies\Microsoft\Windows\Installer' -Name AlwaysInstallElevated -ErrorAction SilentlyContinue
+  text:
+    fr:
+      title: Installations toujours avec privilèges élevés (AlwaysInstallElevated)
+      summary: >-
+        Windows installe n'importe quel paquet MSI avec les droits du système : n'importe
+        quel utilisateur peut ainsi devenir administrateur de la machine.
+      detail: >-
+        AlwaysInstallElevated = 1 dans HKLM et HKCU (Critique). HKLM seul n'est pas
+        exploitable tant que la valeur utilisateur n'est pas définie (Attention).
+      gpo: Configuration ordinateur et Configuration utilisateur > Modèles d'administration > Composants Windows > Windows Installer > Toujours installer avec des privilèges élevés
+    en:
+      title: Installations always elevated (AlwaysInstallElevated)
+      summary: >-
+        Windows installs any MSI package with system privileges: any user can thereby
+        become administrator of the machine.
+      detail: >-
+        AlwaysInstallElevated = 1 in both HKLM and HKCU (Critical). HKLM alone is not
+        exploitable as long as the user value is not set (Warning).
+      gpo: Computer Configuration and User Configuration > Administrative Templates > Windows Components > Windows Installer > Always install with elevated privileges
+
+- id: SYS-003
+  category: system
+  level: warning
+  refs:
+    - name: "MITRE ATT&CK T1021.001 — Remote Desktop Protocol"
+      url: https://attack.mitre.org/techniques/T1021/001/
+  remediation: |
+    Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name UserAuthentication -Value 1 -Type DWord
+  text:
+    fr:
+      title: Bureau à distance sans authentification préalable (NLA)
+      summary: >-
+        Le bureau à distance est activé et affiche l'écran de connexion à n'importe qui
+        avant toute authentification, ce qui expose la machine aux attaques et aux failles
+        du service.
+      detail: fDenyTSConnections = 0 et UserAuthentication = 0 (Network Level Authentication désactivée).
+      impact: Les très anciens clients RDP (antérieurs à Windows 7) ne pourront plus se connecter.
+      gpo: Configuration ordinateur > Modèles d'administration > Composants Windows > Services Bureau à distance > Hôte de la session Bureau à distance > Sécurité > Requiert l'authentification utilisateur pour les connexions à distance à l'aide de l'authentification au niveau du réseau
+    en:
+      title: Remote Desktop without Network Level Authentication (NLA)
+      summary: >-
+        Remote Desktop is enabled and shows the logon screen to anyone before any
+        authentication, which exposes the machine to attacks and service vulnerabilities.
+      detail: fDenyTSConnections = 0 and UserAuthentication = 0 (Network Level Authentication disabled).
+      impact: Very old RDP clients (before Windows 7) will no longer be able to connect.
+      gpo: Computer Configuration > Administrative Templates > Windows Components > Remote Desktop Services > Remote Desktop Session Host > Security > Require user authentication for remote connections by using Network Level Authentication
+
+- id: SYS-004
+  category: system
+  level: warning
+  refs:
+    - name: "MITRE ATT&CK T1557.001 — LLMNR/NBT-NS Poisoning and SMB Relay"
+      url: https://attack.mitre.org/techniques/T1557/001/
+  remediation: |
+    $k = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient'
+    if (-not (Test-Path $k)) { New-Item -Path $k -Force | Out-Null }
+    Set-ItemProperty -Path $k -Name EnableMulticast -Value 0 -Type DWord
+  text:
+    fr:
+      title: Résolution de noms LLMNR activée
+      summary: >-
+        Quand un nom n'existe pas dans le DNS, la machine le demande à tout le réseau local.
+        Un attaquant peut répondre à sa place et récupérer des identifiants.
+      detail: Stratégie DNSClient\EnableMulticast absente ou ≠ 0.
+      impact: Sans effet sur un réseau dont le DNS fonctionne ; à déployer de préférence par GPO.
+      gpo: Configuration ordinateur > Modèles d'administration > Réseau > Client DNS > Désactiver la résolution de noms multidiffusion
+    en:
+      title: LLMNR name resolution enabled
+      summary: >-
+        When a name is not in DNS, the machine asks the whole local network. An attacker can
+        answer instead and capture credentials.
+      detail: DNSClient\EnableMulticast policy missing or ≠ 0.
+      impact: No effect on a network with working DNS; preferably deploy through GPO.
+      gpo: Computer Configuration > Administrative Templates > Network > DNS Client > Turn off multicast name resolution
+
+- id: SYS-005
+  category: system
+  level: warning
+  refs:
+    - name: "MITRE ATT&CK T1557.001 — LLMNR/NBT-NS Poisoning and SMB Relay"
+      url: https://attack.mitre.org/techniques/T1557/001/
+  remediation: |
+    Get-CimInstance Win32_NetworkAdapterConfiguration -Filter 'IPEnabled = TRUE' | Invoke-CimMethod -MethodName SetTcpipNetbios -Arguments @{ TcpipNetbiosOptions = [uint32]2 }
+  text:
+    fr:
+      title: NetBIOS sur TCP/IP activé
+      summary: >-
+        NetBIOS, un ancien mécanisme de résolution de noms, est actif : comme LLMNR, il
+        permet à un attaquant du réseau local d'intercepter des identifiants.
+      detail: NetbiosOptions ≠ 2 sur au moins une interface (0 = selon DHCP, 1 = activé).
+      impact: Vérifier qu'aucun ancien équipement ou logiciel ne dépend des noms NetBIOS (vieux NAS, applications métier).
+    en:
+      title: NetBIOS over TCP/IP enabled
+      summary: >-
+        NetBIOS, an old name resolution mechanism, is active: like LLMNR, it lets an attacker
+        on the local network intercept credentials.
+      detail: NetbiosOptions ≠ 2 on at least one interface (0 = from DHCP, 1 = enabled).
+      impact: Check that no old device or software depends on NetBIOS names (old NAS, line-of-business apps).
+
+- id: SYS-006
+  category: system
+  level: critical
+  refs:
+    - name: "MITRE ATT&CK T1003.001 — LSASS Memory"
+      url: https://attack.mitre.org/techniques/T1003/001/
+  remediation: |
+    Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest' -Name UseLogonCredential -Value 0 -Type DWord
+  text:
+    fr:
+      title: Mots de passe conservés en clair en mémoire (WDigest)
+      summary: >-
+        Windows garde en mémoire les mots de passe des utilisateurs connectés sous une forme
+        lisible. Un attaquant qui prend la main sur la machine les récupère immédiatement.
+      detail: SecurityProviders\WDigest\UseLogonCredential = 1 (souvent laissé par un outil ou un attaquant).
+      impact: >-
+        Effet à la prochaine ouverture de session. Ce réglage est rarement légitime : faire
+        changer les mots de passe des comptes qui se sont connectés à cette machine.
+    en:
+      title: Passwords kept in clear text in memory (WDigest)
+      summary: >-
+        Windows keeps the passwords of logged-on users in memory in a readable form. An
+        attacker who takes over the machine retrieves them immediately.
+      detail: SecurityProviders\WDigest\UseLogonCredential = 1 (often left by a tool or an attacker).
+      impact: >-
+        Takes effect at the next logon. This setting is rarely legitimate: have the
+        passwords of accounts that logged on to this machine changed.
+
+- id: SYS-007
+  category: system
+  level: warning
+  refs:
+    - name: "Microsoft — Configure added LSA protection"
+      url: https://learn.microsoft.com/windows-server/security/credentials-protection-and-management/configuring-additional-lsa-protection
+    - name: "MITRE ATT&CK T1003.001 — LSASS Memory"
+      url: https://attack.mitre.org/techniques/T1003/001/
+  remediation: |
+    Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' -Name RunAsPPL -Value 1 -Type DWord
+  text:
+    fr:
+      title: Protection du processus LSA désactivée
+      summary: >-
+        Le processus qui détient les secrets de connexion (LSASS) n'est pas protégé : les
+        outils de vol d'identifiants peuvent lire sa mémoire.
+      detail: >-
+        lsass.exe n'est pas un processus protégé (lu avec les droits admin), ou RunAsPPL /
+        RunAsPPLBoot absents.
+      impact: >-
+        Redémarrage nécessaire. Des modules tiers non signés (lecteurs de cartes à puce,
+        anciens antivirus) peuvent ne plus se charger : tester d'abord en mode audit
+        (événements 3065/3066).
+    en:
+      title: LSA process protection disabled
+      summary: >-
+        The process holding logon secrets (LSASS) is not protected: credential theft tools
+        can read its memory.
+      detail: >-
+        lsass.exe is not a protected process (read with admin rights), or RunAsPPL /
+        RunAsPPLBoot missing.
+      impact: >-
+        A restart is required. Unsigned third-party modules (smart card readers, old
+        antivirus) may no longer load: test in audit mode first (events 3065/3066).
+
+- id: SYS-008
+  category: system
+  level: info
+  profiles: [workstation, server]
+  refs:
+    - name: "Microsoft — Credential Guard"
+      url: https://learn.microsoft.com/windows/security/identity-protection/credential-guard/
+    - name: "MITRE ATT&CK T1003.001 — LSASS Memory"
+      url: https://attack.mitre.org/techniques/T1003/001/
+  remediation: |
+    $k = 'HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard'
+    if (-not (Test-Path $k)) { New-Item -Path $k -Force | Out-Null }
+    Set-ItemProperty -Path $k -Name EnableVirtualizationBasedSecurity -Value 1 -Type DWord
+    Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' -Name LsaCfgFlags -Value 1 -Type DWord
+  text:
+    fr:
+      title: Credential Guard inactif
+      summary: >-
+        Credential Guard, qui isole les secrets de connexion dans une zone protégée par la
+        virtualisation, n'est pas actif.
+      detail: Win32_DeviceGuard.SecurityServicesRunning ne contient pas 1.
+      impact: >-
+        Nécessite UEFI, Secure Boot et la virtualisation matérielle ; redémarrage
+        nécessaire. Incompatible avec NTLMv1, MS-CHAPv2 et la délégation Kerberos non
+        contrainte. Non pris en charge sur un contrôleur de domaine.
+      gpo: Configuration ordinateur > Modèles d'administration > Système > Device Guard > Activer la sécurité basée sur la virtualisation
+    en:
+      title: Credential Guard not running
+      summary: >-
+        Credential Guard, which isolates logon secrets in a virtualization-protected area,
+        is not running.
+      detail: Win32_DeviceGuard.SecurityServicesRunning does not contain 1.
+      impact: >-
+        Requires UEFI, Secure Boot and hardware virtualization; restart required.
+        Incompatible with NTLMv1, MS-CHAPv2 and Kerberos unconstrained delegation. Not
+        supported on a domain controller.
+      gpo: Computer Configuration > Administrative Templates > System > Device Guard > Turn On Virtualization Based Security
+
+- id: SYS-009
+  category: system
+  level: info
+  refs:
+    - name: "MITRE ATT&CK T1059.001 — PowerShell"
+      url: https://attack.mitre.org/techniques/T1059/001/
+  remediation: |
+    {{if eq .role "workstation"}}Disable-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2Root -NoRestart{{else}}Uninstall-WindowsFeature -Name PowerShell-V2{{end}}
+  text:
+    fr:
+      title: Windows PowerShell 2.0 installé
+      summary: >-
+        L'ancienne version 2.0 de PowerShell est installée. Elle ne connaît ni la
+        journalisation moderne ni les protections antivirus (AMSI) : les attaquants
+        l'utilisent pour passer inaperçus.
+      detail: Moteur PowerShell 2.0 présent (registre PowerShellEngine = 2.0 et assemblage .NET 2 dans le GAC).
+      impact: Quelques scripts très anciens (lancés avec « -Version 2 ») ne fonctionneront plus.
+    en:
+      title: Windows PowerShell 2.0 installed
+      summary: >-
+        The old PowerShell 2.0 is installed. It supports neither modern logging nor
+        antivirus protections (AMSI): attackers use it to go unnoticed.
+      detail: PowerShell 2.0 engine present (registry PowerShellEngine = 2.0 and .NET 2 assembly in the GAC).
+      impact: A few very old scripts (started with "-Version 2") will no longer work.
+
+- id: SYS-010
+  category: system
+  level: info
+  refs:
+    - name: "Microsoft — about_Logging_Windows"
+      url: https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_logging_windows
+    - name: "MITRE ATT&CK T1059.001 — PowerShell"
+      url: https://attack.mitre.org/techniques/T1059/001/
+  remediation: |
+    $k = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging'
+    if (-not (Test-Path $k)) { New-Item -Path $k -Force | Out-Null }
+    Set-ItemProperty -Path $k -Name EnableScriptBlockLogging -Value 1 -Type DWord
+  text:
+    fr:
+      title: Journalisation des scripts PowerShell désactivée
+      summary: >-
+        Les commandes PowerShell exécutées ne sont pas enregistrées : en cas d'incident, il
+        sera difficile de savoir ce qu'un attaquant a fait.
+      detail: Stratégie ScriptBlockLogging\EnableScriptBlockLogging ≠ 1.
+      impact: Augmente le volume du journal Microsoft-Windows-PowerShell/Operational ; prévoir d'en agrandir la taille.
+      gpo: Configuration ordinateur > Modèles d'administration > Composants Windows > Windows PowerShell > Activer la journalisation de blocs de scripts PowerShell
+    en:
+      title: PowerShell script logging disabled
+      summary: >-
+        PowerShell commands that run are not recorded: after an incident, it will be hard to
+        find out what an attacker did.
+      detail: ScriptBlockLogging\EnableScriptBlockLogging policy ≠ 1.
+      impact: Increases the size of the Microsoft-Windows-PowerShell/Operational log; plan to enlarge it.
+      gpo: Computer Configuration > Administrative Templates > Windows Components > Windows PowerShell > Turn on PowerShell Script Block Logging
+
+- id: SYS-011
+  category: system
+  level: warning
+  refs:
+    - name: "MITRE ATT&CK T1091 — Replication Through Removable Media"
+      url: https://attack.mitre.org/techniques/T1091/
+  remediation: |
+    $k = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+    if (-not (Test-Path $k)) { New-Item -Path $k -Force | Out-Null }
+    Set-ItemProperty -Path $k -Name NoDriveTypeAutoRun -Value 255 -Type DWord
+  text:
+    fr:
+      title: Exécution automatique des supports amovibles
+      summary: >-
+        L'exécution ou la lecture automatique est active pour les clés USB et supports
+        amovibles : brancher une clé piégée peut suffire à lancer un programme.
+      detail: NoDriveTypeAutoRun sans le bit 0x04 (amovibles) ni 0xFF, et NoAutorun ≠ 1.
+      impact: Les utilisateurs devront ouvrir eux-mêmes le contenu des clés USB et des CD.
+      gpo: Configuration ordinateur > Modèles d'administration > Composants Windows > Stratégies d'exécution automatique > Désactiver l'exécution automatique
+    en:
+      title: Automatic run of removable media
+      summary: >-
+        AutoRun or AutoPlay is active for USB sticks and removable media: plugging in a
+        booby-trapped stick can be enough to start a program.
+      detail: NoDriveTypeAutoRun without bit 0x04 (removable) or 0xFF, and NoAutorun ≠ 1.
+      impact: Users will have to open the content of USB sticks and CDs themselves.
+      gpo: Computer Configuration > Administrative Templates > Windows Components > AutoPlay Policies > Turn off Autoplay

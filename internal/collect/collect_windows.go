@@ -9,6 +9,7 @@ import (
 	"github.com/maxb1906/aplomb/internal/checks/firewall"
 	"github.com/maxb1906/aplomb/internal/checks/services"
 	"github.com/maxb1906/aplomb/internal/checks/smb"
+	"github.com/maxb1906/aplomb/internal/checks/system"
 	"github.com/maxb1906/aplomb/internal/checks/tasks"
 	"github.com/maxb1906/aplomb/internal/host"
 	"github.com/maxb1906/aplomb/internal/model"
@@ -24,6 +25,7 @@ var sections = []section{
 	{"defender", func(s *model.Snapshot) { s.Defender = defender.Collect(s.Host) }},
 	{"smb", func(s *model.Snapshot) { s.SMB = smb.Collect() }},
 	{"firewall", func(s *model.Snapshot) { s.Firewall = firewall.Collect(s.Host) }},
+	{"system", func(s *model.Snapshot) { s.System = system.Collect(s.Host) }},
 }
 
 // Collect lit la configuration de la machine (lecture seule).
