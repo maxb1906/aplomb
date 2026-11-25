@@ -155,23 +155,31 @@ func tpm(h *model.Host) {
 	}
 }
 
+// portable lit les types de châssis SMBIOS (et la présence d'une batterie).
+// Lecture par COM direct : la bibliothèque wmi plante sur ce tableau.
 func portable(h *model.Host) {
-	var enc []struct{ ChassisTypes []uint16 }
-	if err := win.WMI(`root\CIMV2`, "SELECT ChassisTypes FROM Win32_SystemEnclosure", &enc); err != nil {
+	var types []uint16
+	battery := false
+	err := win.WithCOM(func() error {
+		if err := win.WbemQuery(`root\CIMV2`, "SELECT ChassisTypes FROM Win32_SystemEnclosure", func(o *win.Disp) error {
+			vals, _ := o.Ints("ChassisTypes")
+			for _, v := range vals {
+				types = append(types, uint16(v))
+			}
+			return nil
+		}); err != nil {
+			return err
+		}
+		return win.WbemQuery(`root\CIMV2`, "SELECT DeviceID FROM Win32_Battery", func(o *win.Disp) error {
+			battery = true
+			return nil
+		})
+	})
+	if err != nil && types == nil {
 		h.Gaps.Set("portable", model.GapError, err.Error())
 		return
 	}
-	p := false
-	for _, e := range enc {
-		p = p || PortableChassis(e.ChassisTypes)
-	}
-	if !p {
-		var bat []struct{ DeviceID string }
-		if win.WMI(`root\CIMV2`, "SELECT DeviceID FROM Win32_Battery", &bat) == nil && len(bat) > 0 && h.Role == model.RoleWorkstation {
-			p = true
-		}
-	}
-	h.Portable = model.Bool(p)
+	h.Portable = model.Bool(PortableChassis(types) || (battery && h.Role == model.RoleWorkstation))
 }
 
 func lastUpdate(h *model.Host) {

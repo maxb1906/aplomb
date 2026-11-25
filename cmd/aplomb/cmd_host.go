@@ -7,7 +7,10 @@ import (
 )
 
 // cmdHost affiche le contexte de la machine en JSON.
-func cmdHost(e *env, _ []string) int {
+func cmdHost(e *env, args []string) int {
+	if code, ok := e.parse(e.newFlags("host"), args); !ok {
+		return code
+	}
 	enc := json.NewEncoder(e.stdout)
 	enc.SetIndent("", "  ")
 	if err := enc.Encode(host.Collect()); err != nil {
