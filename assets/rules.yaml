@@ -1303,3 +1303,140 @@
       impact: >-
         NAS devices set up with guest access will no longer be reachable: create an account on them.
       gpo: Computer Configuration > Administrative Templates > Network > Lanman Workstation > Enable insecure guest logons
+
+# ---------------------------------------------------------------- Pare-feu
+- id: FW-001
+  category: firewall
+  level: critical
+  refs:
+    - name: "Microsoft — Windows Firewall"
+      url: https://learn.microsoft.com/windows/security/operating-system-security/network-security/windows-firewall/
+    - name: "MITRE ATT&CK T1562.004 — Disable or Modify System Firewall"
+      url: https://attack.mitre.org/techniques/T1562/004/
+  remediation: |
+    Set-NetFirewallProfile -Profile {{.profile}} -Enabled True
+  text:
+    fr:
+      title: Pare-feu désactivé
+      summary: >-
+        Le pare-feu Windows est désactivé pour un type de réseau : la machine accepte toutes
+        les connexions entrantes quand elle y est connectée (par exemple sur un Wi-Fi public).
+      detail: Profil {profile} — FirewallEnabled = faux, et aucun pare-feu tiers actif détecté.
+      impact: Vérifier qu'aucune application ne dépend de ports ouverts sans règle explicite (les tester après activation).
+      gpo: Configuration ordinateur > Stratégies > Paramètres Windows > Paramètres de sécurité > Pare-feu Windows Defender avec fonctions avancées de sécurité
+    en:
+      title: Firewall disabled
+      summary: >-
+        Windows Firewall is disabled for a network type: the machine accepts all incoming
+        connections when connected to it (for example on public Wi-Fi).
+      detail: Profile {profile} — FirewallEnabled = false, and no active third-party firewall found.
+      impact: Check that no application relies on open ports without an explicit rule (test them after enabling).
+      gpo: Computer Configuration > Policies > Windows Settings > Security Settings > Windows Defender Firewall with Advanced Security
+
+- id: FW-002
+  category: firewall
+  level: critical
+  refs:
+    - name: "Microsoft — Windows Firewall"
+      url: https://learn.microsoft.com/windows/security/operating-system-security/network-security/windows-firewall/
+  remediation: |
+    Set-NetFirewallProfile -Profile {{.profile}} -DefaultInboundAction Block
+  text:
+    fr:
+      title: Pare-feu ouvert par défaut en entrée
+      summary: >-
+        Le pare-feu est actif mais laisse entrer par défaut toutes les connexions qui ne sont
+        pas explicitement bloquées : il ne protège presque rien.
+      detail: Profil {profile} — DefaultInboundAction = Autoriser.
+      impact: Les services qui n'ont pas de règle d'autorisation deviendront injoignables depuis le réseau.
+      gpo: Configuration ordinateur > Stratégies > Paramètres Windows > Paramètres de sécurité > Pare-feu Windows Defender avec fonctions avancées de sécurité > Propriétés > Connexions entrantes
+    en:
+      title: Firewall open by default for inbound traffic
+      summary: >-
+        The firewall is on but lets in by default every connection that is not explicitly
+        blocked: it protects almost nothing.
+      detail: Profile {profile} — DefaultInboundAction = Allow.
+      impact: Services without an allow rule will become unreachable from the network.
+      gpo: Computer Configuration > Policies > Windows Settings > Security Settings > Windows Defender Firewall with Advanced Security > Properties > Inbound connections
+
+- id: FW-003
+  category: firewall
+  level: warning
+  refs:
+    - name: "MITRE ATT&CK T1562.004 — Disable or Modify System Firewall"
+      url: https://attack.mitre.org/techniques/T1562/004/
+  remediation: |
+    Get-NetFirewallRule -DisplayName {{ps .rule}} | Disable-NetFirewallRule
+  text:
+    fr:
+      title: Règle de pare-feu qui autorise tout
+      summary: >-
+        Une règle autorise en entrée tous les ports, depuis toutes les adresses, sans se
+        limiter à un programme : elle annule l'effet du pare-feu.
+      detail: Règle entrante active « Autoriser », LocalPorts = *, RemoteAddresses = *, sans programme ni service.
+      impact: Identifier l'application qui a besoin de cette règle et la remplacer par une règle limitée à ses ports.
+    en:
+      title: Firewall rule allowing everything
+      summary: >-
+        A rule allows inbound traffic on all ports, from all addresses, without being
+        limited to a program: it cancels out the firewall.
+      detail: Enabled inbound "Allow" rule, LocalPorts = *, RemoteAddresses = *, with no program or service.
+      impact: Identify the application that needs this rule and replace it with a rule limited to its ports.
+
+- id: FW-004
+  category: firewall
+  level: warning
+  refs:
+    - name: "MITRE ATT&CK T1021.001 — Remote Desktop Protocol"
+      url: https://attack.mitre.org/techniques/T1021/001/
+    - name: "MITRE ATT&CK T1021.002 — SMB/Windows Admin Shares"
+      url: https://attack.mitre.org/techniques/T1021/002/
+  remediation: |
+    Get-NetFirewallRule -DisplayName {{ps .rule}} | Set-NetFirewallRule -Profile Domain,Private -RemoteAddress LocalSubnet
+  text:
+    fr:
+      title: Port sensible ouvert à tous sur les réseaux publics
+      summary: >-
+        Un service sensible (bureau à distance, partage de fichiers, administration à
+        distance, base de données…) est accessible depuis n'importe quelle adresse quand la
+        machine est sur un réseau public (hôtel, gare, Wi-Fi invité).
+      detail: >-
+        Règle entrante active sur le profil Public, RemoteAddresses = *, couvrant RDP 3389,
+        SMB 445/139, WinRM 5985/5986, SSH, Telnet, FTP, VNC ou une base de données.
+      impact: Le service ne sera plus joignable depuis un réseau public ; passer par un VPN pour un accès à distance.
+    en:
+      title: Sensitive port open to all on public networks
+      summary: >-
+        A sensitive service (remote desktop, file sharing, remote management, database…) is
+        reachable from any address when the machine is on a public network (hotel, station,
+        guest Wi-Fi).
+      detail: >-
+        Enabled inbound rule on the Public profile, RemoteAddresses = *, covering RDP 3389,
+        SMB 445/139, WinRM 5985/5986, SSH, Telnet, FTP, VNC or a database.
+      impact: The service will no longer be reachable from a public network; use a VPN for remote access.
+
+- id: FW-005
+  category: firewall
+  level: warning
+  refs:
+    - name: "MITRE ATT&CK T1574 — Hijack Execution Flow"
+      url: https://attack.mitre.org/techniques/T1574/
+  remediation: |
+    icacls {{ps .path}} /remove:g {{.sids}}
+    icacls {{ps .path}}
+  text:
+    fr:
+      title: Règle de pare-feu pour un programme modifiable
+      summary: >-
+        Le pare-feu laisse entrer les connexions vers un programme que n'importe quel
+        utilisateur peut remplacer : un logiciel malveillant n'aurait qu'à prendre sa place
+        pour être joignable depuis le réseau.
+      detail: Règle entrante active limitée à un programme dont le fichier ou le dossier est inscriptible par des non-administrateurs.
+      impact: Seules les entrées explicites sont retirées ; vérifier que le programme fonctionne toujours.
+    en:
+      title: Firewall rule for a writable program
+      summary: >-
+        The firewall lets in connections to a program that any user can replace: malware
+        would only have to take its place to be reachable from the network.
+      detail: Enabled inbound rule limited to a program whose file or folder is writable by non-administrators.
+      impact: Only explicit entries are removed; check that the program still works.

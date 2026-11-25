@@ -866,5 +866,122 @@
       "insecure_guest": true,
       "insecure_guest_policy": true
     }
+  },
+  "firewall": {
+    "profiles": [
+      {
+        "name": "Domain",
+        "enabled": false,
+        "inbound_allow": false,
+        "active": false
+      },
+      {
+        "name": "Private",
+        "enabled": true,
+        "inbound_allow": true,
+        "active": true
+      },
+      {
+        "name": "Public",
+        "enabled": false,
+        "inbound_allow": false,
+        "active": false,
+        "policy": true
+      }
+    ],
+    "rules": [
+      {
+        "name": "Partage de fichiers et d'imprimantes (SMB-Entrée)",
+        "profiles": [
+          "Domain",
+          "Private"
+        ],
+        "protocol": 6,
+        "local_ports": "445",
+        "remote": "LocalSubnet"
+      },
+      {
+        "name": "Microsoft Teams",
+        "profiles": [
+          "Domain",
+          "Private",
+          "Public"
+        ],
+        "protocol": 17,
+        "local_ports": "*",
+        "remote": "*",
+        "application": "C:\\Users\\bob\\AppData\\Local\\Microsoft\\Teams\\current\\Teams.exe",
+        "app": {
+          "path": "C:\\Users\\bob\\AppData\\Local\\Microsoft\\Teams\\current",
+          "exists": true
+        }
+      },
+      {
+        "name": "Réseau de base - ICMPv6",
+        "profiles": [
+          "Domain",
+          "Private",
+          "Public"
+        ],
+        "protocol": 58,
+        "local_ports": "",
+        "remote": "*"
+      },
+      {
+        "name": "Tout autoriser",
+        "profiles": [
+          "Domain",
+          "Private",
+          "Public"
+        ],
+        "protocol": 6,
+        "local_ports": "*",
+        "remote": "*"
+      },
+      {
+        "name": "Bureau à distance - Mode utilisateur (TCP-Entrée)",
+        "profiles": [
+          "Domain",
+          "Private",
+          "Public"
+        ],
+        "protocol": 6,
+        "local_ports": "3389",
+        "remote": "*"
+      },
+      {
+        "name": "Agent SQL",
+        "profiles": [
+          "Public"
+        ],
+        "protocol": 6,
+        "local_ports": "1433-1434",
+        "remote": "*"
+      },
+      {
+        "name": "Outil maison",
+        "profiles": [
+          "Domain",
+          "Private",
+          "Public"
+        ],
+        "protocol": 6,
+        "local_ports": "8080",
+        "remote": "*",
+        "application": "C:\\Outils\\srv.exe",
+        "app": {
+          "path": "C:\\Outils",
+          "exists": true,
+          "writable_by": [
+            {
+              "sid": "S-1-5-32-545",
+              "name": "BUILTIN\\Utilisateurs",
+              "rights": "delete_child"
+            }
+          ]
+        }
+      }
+    ],
+    "other_fw": []
   }
 }

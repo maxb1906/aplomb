@@ -285,5 +285,39 @@
       "smb1": false,
       "insecure_guest": false
     }
+  },
+  "firewall": {
+    "profiles": [
+      {
+        "name": "Domain",
+        "enabled": true,
+        "inbound_allow": false,
+        "active": true
+      },
+      {
+        "name": "Private",
+        "enabled": true,
+        "inbound_allow": false,
+        "active": false
+      },
+      {
+        "name": "Public",
+        "enabled": true,
+        "inbound_allow": false,
+        "active": false
+      }
+    ],
+    "rules": [
+      {
+        "name": "Windows Remote Management (HTTP-In)",
+        "profiles": [
+          "Domain",
+          "Private"
+        ],
+        "protocol": 6,
+        "local_ports": "5985",
+        "remote": "*"
+      }
+    ]
   }
 }

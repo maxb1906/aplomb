@@ -279,5 +279,13 @@
       "smb1": false,
       "insecure_guest": false
     }
+  },
+  "firewall": {
+    "gaps": {
+      "policy": {
+        "reason": "error",
+        "detail": "HNetCfg.FwPolicy2 : 0x800706d9"
+      }
+    }
   }
 }

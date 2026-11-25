@@ -62,6 +62,7 @@ type Snapshot struct {
 	BitLocker   *BitLocker `json:"bitlocker,omitempty"`
 	Defender    *Defender  `json:"defender,omitempty"`
 	SMB         *SMB       `json:"smb,omitempty"`
+	Firewall    *Firewall  `json:"firewall,omitempty"`
 	// Gaps liste les sections entières non collectées (clé : nom de section).
 	Gaps Gaps `json:"gaps,omitempty"`
 }

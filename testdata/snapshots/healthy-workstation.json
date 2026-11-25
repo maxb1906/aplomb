@@ -337,5 +337,67 @@
       "smb1": false,
       "insecure_guest": false
     }
+  },
+  "firewall": {
+    "profiles": [
+      {
+        "name": "Domain",
+        "enabled": true,
+        "inbound_allow": false,
+        "active": true
+      },
+      {
+        "name": "Private",
+        "enabled": true,
+        "inbound_allow": false,
+        "active": false
+      },
+      {
+        "name": "Public",
+        "enabled": true,
+        "inbound_allow": false,
+        "active": false
+      }
+    ],
+    "rules": [
+      {
+        "name": "Partage de fichiers et d'imprimantes (SMB-Entrée)",
+        "profiles": [
+          "Domain",
+          "Private"
+        ],
+        "protocol": 6,
+        "local_ports": "445",
+        "remote": "LocalSubnet"
+      },
+      {
+        "name": "Microsoft Teams",
+        "profiles": [
+          "Domain",
+          "Private",
+          "Public"
+        ],
+        "protocol": 17,
+        "local_ports": "*",
+        "remote": "*",
+        "application": "C:\\Users\\bob\\AppData\\Local\\Microsoft\\Teams\\current\\Teams.exe",
+        "app": {
+          "path": "C:\\Users\\bob\\AppData\\Local\\Microsoft\\Teams\\current",
+          "exists": true
+        }
+      },
+      {
+        "name": "Réseau de base - ICMPv6",
+        "profiles": [
+          "Domain",
+          "Private",
+          "Public"
+        ],
+        "protocol": 58,
+        "local_ports": "",
+        "remote": "*"
+      }
+    ],
+    "other_fw": []
   }
 }

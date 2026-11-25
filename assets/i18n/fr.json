@@ -78,6 +78,7 @@
   "note.not_joined": "Machine hors domaine et hors Entra ID",
   "note.not_portable": "Ne concerne que les appareils portables",
   "note.other_av": "Un autre antivirus est actif ({a0}) : Defender est normalement en mode passif",
+  "note.other_fw": "Un pare-feu tiers est actif ({a0})",
   "note.partial_tasks": "Vérification partielle : sans droits administrateur, les tâches des autres comptes ne sont pas visibles",
   "note.profile": "Ne concerne pas ce type de machine ({a0})",
   "reason.absent": "Fonctionnalité absente sur cette machine",
