@@ -1,7 +1,7 @@
 # Aplomb — Analyseur d'hygiène et de sécurité Windows (Local Hardening Audit) — Structure projet
 
 > Fichier de cadrage et de suivi d'implémentation. Il consigne tous les choix du projet et sert de référence à Claude Code pendant le développement sur la devbox Oracle.
-> Statut : **v1.0.0 publiée** (2026-11-25) — https://github.com/maxb1906/aplomb/releases/tag/v1.0.0 ; prochaines pistes : § 11.
+> Statut : **v1.0.0 publiée** (2026-11-25) — https://github.com/maxb1906/aplomb/releases/tag/v1.0.0 ; reste la validation sur machine réelle (étape 12 bis) ; prochaines pistes : § 11.
 > Nom : **Aplomb** — licence **GPL-3.0** — dépôt GitHub public — projet **séparé** d'Arpent.
 
 ---
@@ -281,7 +281,8 @@ Chaque contrôle implémente la même interface : `Collect()` (lit l'état brut)
 - [x] **Étape 9 — Pare-feu.**
 - [x] **Étape 10 — Durcissement système** (UAC, RDP, LLMNR, WDigest, LSA…).
 - [x] **Étape 11 — Remédiation** : commandes par règle, script `.ps1` commenté avec `-WhatIf`, détection GPO.
-- [x] **Étape 12 — Lab** : `make-vulnerable.ps1`, VM de test, chasse aux faux positifs.
+- [x] **Étape 12 — Lab** : `make-vulnerable.ps1`, VM de test, chasse aux faux positifs. **Validée en CI seulement** (lab rejoué sur `windows-latest` / Windows Server 2025) ; la validation sur machine réelle est la case suivante.
+- [ ] **Étape 12 bis — Validation réelle** : VM Proxmox (Windows Server d'évaluation et/ou Windows 11) avec `lab/README.md`, **audit sans admin** (mode dégradé), audit du PC Windows perso, confirmation du tableau « droits admin » (§ 8) d'après ces tests.
 - [x] **Étape 13 — Finitions v1.0** : config, mode dégradé sans admin, textes FR/EN relus, publication GitHub Releases.
 
 Chaque étape se termine par un exe Windows testable.
@@ -327,3 +328,4 @@ Chaque étape se termine par un exe Windows testable.
 - **2026-11-25** — Dépôt public `maxb1906/aplomb` créé et poussé. Premier passage de la CI : **plantage de la bibliothèque `wmi` sur le tableau `Win32_SystemEnclosure.ChassisTypes`** (conversion int32 → uint16) ; lecture remplacée par COM direct (`WbemQuery`), et `aplomb host -h` affiche désormais l'aide au lieu de lancer la collecte.
 - **2026-11-25** — **Premier lab réel en CI (Windows Server 2025)** : 17 faiblesses sur 18 détectées (la 18ᵉ, ACC-008, venait de la création du compte de test, refaite par ADSI). Faux positifs relevés sur la machine neuve et corrigés : règles de pare-feu des applications du Store (limitées par package, `LocalAppPackageId`) exclues de FW-003 ; tâches `\\Microsoft\\` exclues de TSK-005 (exécutable absent d'une tâche intégrée, ex. `USO_UxBroker` sur Server 2025) ; TSK-004 : une tâche sans auteur n'est signalée que si son programme est hors Program Files / Windows (les tâches masquées restent signalées). Vrais positifs confirmés sur le runner : Defender désactivé et lecteurs exclus, UAC sans invite, RDP/WinRM/SSH ouverts sur le profil Public, tâches Edge orphelines.
 - **2026-11-25** — **Release v1.0.0** publiée par GoReleaser (tag `v1.0.0`) : `aplomb_1.0.0_windows_amd64.zip`, `aplomb_1.0.0_windows_arm64.zip` (exe + LICENSE + README FR/EN) et `SHA256SUMS`, sommes vérifiées après téléchargement. Exécutable non signé (signature SignPath : § 11).
+- **2026-11-25** — Audit de cohérence Arpent · Aplomb · Jalon : l'étape 12 avait été cochée sur la base du seul lab en CI ; elle est précisée « validée en CI seulement » et une case **Étape 12 bis — Validation réelle** (VM Proxmox, audit sans admin, PC perso, tableau « droits admin ») est rouverte. README FR/EN : le Contrôle intelligent des applications de Windows 11 bloque l'exe non signé sans bouton pour passer outre. **`config.yaml` aligné sur Arpent** : `technician`, `lang`, `report_lang`, `issuer: {name, company, contact, legal, color, logo}` ; les anciennes clés `company` et `logo` à la racine sont lues puis reportées dans `issuer` (jamais réécrites) ; `aplomb config` gagne `--contact` et `--color`. Rapport : couleur de l'émetteur (`--accent`), coordonnées sur la page de garde, mentions légales en pied, `meta.issuer` dans le JSON ; palette commune aux trois outils (bloc `:root` identique). CI : `go mod tidy -diff`.

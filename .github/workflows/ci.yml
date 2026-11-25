@@ -25,6 +25,9 @@ jobs:
       - name: gofmt
         if: runner.os == 'Linux'
         run: make fmt-check
+      - name: go.mod à jour (go mod tidy)
+        if: runner.os == 'Linux'
+        run: go mod tidy -diff
       - run: go vet ./...
       - name: go vet (GOOS=windows)
         if: runner.os == 'Linux'

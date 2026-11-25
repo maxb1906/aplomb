@@ -158,7 +158,7 @@ func (e *env) produce(snap *model.Snapshot, f *reportFlags) int {
 	if effProfile == "" {
 		effProfile = snap.Host.Role
 	}
-	rep := report.Build(snap, results, cat, report.Meta{Version: version, Lang: lang, Profile: effProfile, Technician: cfg.Technician, Company: cfg.Company})
+	rep := report.Build(snap, results, cat, report.Meta{Version: version, Lang: lang, Profile: effProfile, Technician: cfg.Technician, Company: cfg.Issuer.Company, Issuer: issuerMeta(cfg.Issuer)})
 
 	formats := report.Formats
 	if f.format != "" {
@@ -244,4 +244,13 @@ func (e *env) loadConfig() {
 		fmt.Fprintln(e.stderr, e.T("cli.error", "error", err.Error()))
 	}
 	e.cfg = cfg
+}
+
+// issuerMeta reprend l'émetteur de config.yaml pour le rapport (nil s'il est vide).
+func issuerMeta(is config.Issuer) *report.Issuer {
+	m := report.Issuer{Name: is.Name, Company: is.Company, Contact: is.Contact, Legal: is.Legal, Color: is.Color}
+	if m == (report.Issuer{}) {
+		return nil
+	}
+	return &m
 }

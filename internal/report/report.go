@@ -33,6 +33,16 @@ type Meta struct {
 	Elevated    bool      `json:"elevated"`
 	Technician  string    `json:"technician,omitempty"`
 	Company     string    `json:"company,omitempty"`
+	Issuer      *Issuer   `json:"issuer,omitempty"`
+}
+
+// Issuer est l'émetteur du rapport (issuer de config.yaml, sans le logo).
+type Issuer struct {
+	Name    string `json:"name,omitempty"`
+	Company string `json:"company,omitempty"`
+	Contact string `json:"contact,omitempty"`
+	Legal   string `json:"legal,omitempty"`
+	Color   string `json:"color,omitempty"`
 }
 
 // Report est le contenu complet d'un rapport ; c'est aussi le JSON produit.

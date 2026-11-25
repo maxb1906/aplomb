@@ -169,3 +169,29 @@ func TestAllFixturesRenderCleanly(t *testing.T) {
 		}
 	}
 }
+
+func TestIssuerOnCover(t *testing.T) {
+	r, o := build(t, "healthy-workstation", nil)
+	r.Meta.Company = "Société <X>"
+	r.Meta.Issuer = &Issuer{Name: "Grace", Company: "Société <X>", Contact: "grace@example.com", Legal: "TVA BE0123.456.789", Color: "#aa3300"}
+	var b bytes.Buffer
+	if err := HTML(&b, r, o); err != nil {
+		t.Fatal(err)
+	}
+	h := b.String()
+	for _, want := range []string{"--accent:#aa3300", "Société &lt;X&gt;", "Grace", "grace@example.com", "TVA BE0123.456.789"} {
+		if !strings.Contains(h, want) {
+			t.Errorf("HTML : %q absent", want)
+		}
+	}
+	if strings.Contains(h, "ZgotmplZ") {
+		t.Error("couleur filtrée par html/template")
+	}
+	var j bytes.Buffer
+	if err := JSON(&j, r); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(j.String(), `"issuer"`) {
+		t.Error("JSON : issuer absent")
+	}
+}

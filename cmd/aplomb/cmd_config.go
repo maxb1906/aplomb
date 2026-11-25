@@ -16,6 +16,8 @@ func cmdConfig(e *env, args []string) int {
 	fs := e.newFlags("config")
 	tech := fs.String("technician", "", "")
 	company := fs.String("company", "", "")
+	contact := fs.String("contact", "", "")
+	color := fs.String("color", "", "")
 	logo := fs.String("logo", "", "")
 	lang := fs.String("lang", "", "")
 	rlang := fs.String("report-lang", "", "")
@@ -37,13 +39,19 @@ func cmdConfig(e *env, args []string) int {
 		})
 	}
 	set("technician", &c.Technician, *tech)
-	set("company", &c.Company, *company)
-	set("logo", &c.Logo, *logo)
+	set("company", &c.Issuer.Company, *company)
+	set("contact", &c.Issuer.Contact, *contact)
+	set("color", &c.Issuer.Color, *color)
+	set("logo", &c.Issuer.Logo, *logo)
 	set("lang", &c.Lang, *lang)
 	set("report-lang", &c.ReportLang, *rlang)
 	set("profile", &c.Profile, *profile)
 	if c.Lang != "" && !e.bundle.Has(c.Lang) || c.ReportLang != "" && !e.bundle.Has(c.ReportLang) {
 		fmt.Fprintln(e.stderr, e.T("config.bad_lang"))
+		return 2
+	}
+	if c.Issuer.Color != "" && !config.ValidColor(c.Issuer.Color) {
+		fmt.Fprintln(e.stderr, e.T("config.bad_color", "color", c.Issuer.Color))
 		return 2
 	}
 	if _, ok := parseProfile(c.Profile); !ok {
@@ -52,6 +60,7 @@ func cmdConfig(e *env, args []string) int {
 	}
 	path := filepath.Join(dir, config.FileName)
 	if changed {
+		c.Normalize()
 		data, err := yaml.Marshal(c)
 		if err != nil {
 			return e.fail(err)
