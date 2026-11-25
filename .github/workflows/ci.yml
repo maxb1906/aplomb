@@ -99,3 +99,45 @@ jobs:
       - name: Analyse (Windows PowerShell 5.1)
         shell: powershell
         run: ./tools/check-ps1.ps1 -Path "$env:RUNNER_TEMP"
+
+  lab:
+    name: Lab (machine volontairement vulnérable)
+    needs: build
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: aplomb-binaries
+          path: dist
+      - name: Audit de la machine neuve
+        shell: pwsh
+        run: |
+          ./dist/aplomb-windows-amd64.exe --lang fr --data "$env:RUNNER_TEMP\data" audit --no-open --out "$env:RUNNER_TEMP\avant"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Dégradation (lab/make-vulnerable.ps1)
+        shell: pwsh
+        run: ./lab/make-vulnerable.ps1 -ConfirmLab
+      - name: Audit après dégradation
+        shell: pwsh
+        run: |
+          ./dist/aplomb-windows-amd64.exe --lang fr --data "$env:RUNNER_TEMP\data" audit --no-open --out "$env:RUNNER_TEMP\apres"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Vérification des détections
+        shell: pwsh
+        run: |
+          $after = (Get-ChildItem "$env:RUNNER_TEMP\apres" -Recurse -Filter *.json | Select-Object -First 1).FullName
+          $before = (Get-ChildItem "$env:RUNNER_TEMP\avant" -Recurse -Filter *.json | Select-Object -First 1).FullName
+          ./lab/check-lab.ps1 -Report $after -Baseline $before
+      - name: Syntaxe du script de remédiation réel
+        if: always()
+        shell: pwsh
+        run: ./tools/check-ps1.ps1 -Path "$env:RUNNER_TEMP\apres"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: lab-reports
+          path: |
+            ${{ runner.temp }}/avant
+            ${{ runner.temp }}/apres
