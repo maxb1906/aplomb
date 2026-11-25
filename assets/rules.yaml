@@ -25,7 +25,7 @@
     - name: "MITRE ATT&CK T1068 — Exploitation for Privilege Escalation"
       url: https://attack.mitre.org/techniques/T1068/
   remediation: |
-    Start-Process 'ms-settings:windowsupdate'   # ou : UsoClient StartInteractiveScan
+    Start-Process 'ms-settings:windowsupdate'
   text:
     fr:
       title: Mises à jour Windows en retard
@@ -57,7 +57,6 @@
     - name: "MITRE ATT&CK T1542 — Pre-OS Boot"
       url: https://attack.mitre.org/techniques/T1542/
   remediation: |
-    # Secure Boot s'active dans le firmware (UEFI) de la machine, pas depuis Windows.
     Confirm-SecureBootUEFI
   text:
     fr:
@@ -82,3 +81,178 @@
       impact: >-
         Enable it in the UEFI setup. Moving from BIOS to UEFI boot requires converting
         the disk (mbr2gpt): plan ahead.
+
+# ---------------------------------------------------------------- Services
+- id: SVC-001
+  category: services
+  level: critical
+  refs:
+    - name: "MITRE ATT&CK T1574.009 — Path Interception by Unquoted Path"
+      url: https://attack.mitre.org/techniques/T1574/009/
+  remediation: |
+    Set-ItemProperty -Path {{ps .key}} -Name ImagePath -Value {{ps .fixed}}
+    Restart-Service -Name {{ps .service}}
+  text:
+    fr:
+      title: Service avec un chemin sans guillemets
+      summary: >-
+        Le chemin de ce service contient des espaces sans être entre guillemets. Windows
+        peut alors lancer un autre programme placé au mauvais endroit, avec les droits du
+        service.
+      detail: >-
+        ImagePath non cité contenant des espaces, hors %SystemRoot%. Critique si un dossier
+        intermédiaire est inscriptible par des non-administrateurs (exploitation possible),
+        Attention sinon.
+      impact: Ajouter les guillemets est sans risque ; le service doit être redémarré pour en tenir compte.
+    en:
+      title: Service with an unquoted path
+      summary: >-
+        This service's path contains spaces but is not quoted. Windows may then start
+        another program placed in the wrong location, with the service's privileges.
+      detail: >-
+        Unquoted ImagePath containing spaces, outside %SystemRoot%. Critical if an
+        intermediate folder is writable by non-administrators (exploitable), Warning otherwise.
+      impact: Adding the quotes is safe; the service must be restarted to take it into account.
+
+- id: SVC-002
+  category: services
+  level: critical
+  refs:
+    - name: "MITRE ATT&CK T1574.010 — Services File Permissions Weakness"
+      url: https://attack.mitre.org/techniques/T1574/010/
+  remediation: |
+    icacls {{ps .path}} /remove:g {{.sids}}
+    icacls {{ps .path}}
+  text:
+    fr:
+      title: Programme de service modifiable par des utilisateurs
+      summary: >-
+        Des utilisateurs sans droits d'administration peuvent modifier le programme d'un
+        service ou son dossier. N'importe lequel d'entre eux peut ainsi prendre le contrôle
+        total de la machine.
+      detail: >-
+        Droits accordés à Tout le monde, Utilisateurs, Utilisateurs authentifiés… : modifier
+        l'exécutable ou le remplacer dans son dossier (Critique) ; seulement ajouter un
+        fichier dans le dossier, ce qui permet de déposer une DLL (Attention).
+      impact: >-
+        icacls /remove ne retire que les droits explicites : si les droits sont hérités,
+        corriger le dossier parent. Vérifier que le logiciel fonctionne toujours (certains
+        programmes mal conçus écrivent dans leur dossier d'installation).
+    en:
+      title: Service program writable by users
+      summary: >-
+        Users without administrator rights can modify a service's program or its folder.
+        Any of them can thereby take full control of the machine.
+      detail: >-
+        Rights granted to Everyone, Users, Authenticated Users…: modify the executable or
+        replace it in its folder (Critical); only add a file to the folder, which allows
+        planting a DLL (Warning).
+      impact: >-
+        icacls /remove only removes explicit entries: if the rights are inherited, fix the
+        parent folder. Check that the software still works (some poorly designed programs
+        write into their install folder).
+
+- id: SVC-003
+  category: services
+  level: critical
+  refs:
+    - name: "MITRE ATT&CK T1574.011 — Services Registry Permissions Weakness"
+      url: https://attack.mitre.org/techniques/T1574/011/
+  remediation: |
+    $k = {{ps .key}}
+    $bad = @({{.sids}})
+    $acl = Get-Acl -Path $k
+    $acl.Access | Where-Object { -not $_.IsInherited -and $bad -contains $_.IdentityReference.Translate([Security.Principal.SecurityIdentifier]).Value } | ForEach-Object { [void]$acl.RemoveAccessRule($_) }
+    Set-Acl -Path $k -AclObject $acl
+  text:
+    fr:
+      title: Configuration de service modifiable par des utilisateurs
+      summary: >-
+        La configuration de ce service dans le registre peut être modifiée par des
+        utilisateurs sans droits d'administration : ils peuvent lui faire lancer le
+        programme de leur choix avec les droits du système.
+      detail: >-
+        Droits SetValue, CreateSubKey, WriteDAC ou WriteOwner pour des groupes non
+        administrateurs sur HKLM\SYSTEM\CurrentControlSet\Services\<service>.
+      impact: Seules les entrées explicites sont retirées ; vérifier le résultat avec Get-Acl.
+    en:
+      title: Service configuration writable by users
+      summary: >-
+        This service's registry configuration can be modified by users without
+        administrator rights: they can make it run the program of their choice with
+        system privileges.
+      detail: >-
+        SetValue, CreateSubKey, WriteDAC or WriteOwner rights for non-administrator groups
+        on HKLM\SYSTEM\CurrentControlSet\Services\<service>.
+      impact: Only explicit entries are removed; check the result with Get-Acl.
+
+- id: SVC-004
+  category: services
+  level: warning
+  refs:
+    - name: "MITRE ATT&CK T1543.003 — Windows Service"
+      url: https://attack.mitre.org/techniques/T1543/003/
+  remediation: |
+    Stop-Service -Name {{ps .service}} -Force
+    Set-Service -Name {{ps .service}} -StartupType Disabled
+  text:
+    fr:
+      title: Service système lancé depuis un dossier utilisateur
+      summary: >-
+        Un service tiers tourne avec les droits les plus élevés (SYSTEM) depuis un dossier
+        utilisateur ou temporaire. C'est inhabituel pour un logiciel légitime et typique
+        d'un logiciel indésirable.
+      detail: >-
+        Service LocalSystem dont l'exécutable est sous \Users\, \AppData\, \Temp\ ou
+        \Downloads\.
+      impact: >-
+        Identifier le logiciel avant de le désactiver. S'il est légitime, le réinstaller
+        dans « Program Files ».
+    en:
+      title: System service started from a user folder
+      summary: >-
+        A third-party service runs with the highest privileges (SYSTEM) from a user or
+        temporary folder. This is unusual for legitimate software and typical of unwanted
+        software.
+      detail: >-
+        LocalSystem service whose executable is under \Users\, \AppData\, \Temp\ or
+        \Downloads\.
+      impact: >-
+        Identify the software before disabling it. If it is legitimate, reinstall it under
+        "Program Files".
+
+- id: SVC-005
+  category: services
+  level: warning
+  profiles: [server, dc]
+  refs:
+    - name: "Microsoft — Print Spooler (CVE-2021-34527, « PrintNightmare »)"
+      url: https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-34527
+    - name: "MITRE ATT&CK T1210 — Exploitation of Remote Services"
+      url: https://attack.mitre.org/techniques/T1210/
+  remediation: |
+    Stop-Service -Name Spooler -Force
+    Set-Service -Name Spooler -StartupType Disabled
+  text:
+    fr:
+      title: Service d'impression actif sans utilité
+      summary: >-
+        Le service d'impression (spouleur) tourne sur un serveur qui n'imprime pas, ou sur
+        un contrôleur de domaine. Il a été à l'origine de failles graves et ne devrait pas y
+        être actif.
+      detail: >-
+        Service Spooler en cours d'exécution sur un contrôleur de domaine, ou sur un
+        serveur sans imprimante installée (hors imprimantes virtuelles Microsoft).
+      impact: Plus aucune impression ni partage d'imprimante ne sera possible depuis cette machine.
+      gpo: Configuration ordinateur > Stratégies > Paramètres Windows > Paramètres de sécurité > Services système > Spouleur d'impression
+    en:
+      title: Print service running needlessly
+      summary: >-
+        The print service (spooler) runs on a server that does not print, or on a domain
+        controller. It has been the source of severe vulnerabilities and should not be
+        running there.
+      detail: >-
+        Spooler service running on a domain controller, or on a server with no installed
+        printer (Microsoft virtual printers excluded).
+      impact: No printing or printer sharing will be possible from this machine any more.
+      gpo: Computer Configuration > Policies > Windows Settings > Security Settings > System Services > Print Spooler

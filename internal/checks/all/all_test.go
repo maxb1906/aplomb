@@ -106,6 +106,7 @@ func TestHealthyWorkstation(t *testing.T) {
 	got := evaluate(t, "healthy-workstation", rules.Options{})
 	check(t, "healthy", got, map[string]string{
 		"SYS-012": "pass", "SYS-013": "pass",
+		"SVC-001": "pass", "SVC-002": "pass", "SVC-003": "pass", "SVC-004": "pass", "SVC-005": "not_applicable",
 	})
 	for id, r := range got {
 		if r.Status == rules.Fail {
@@ -122,7 +123,20 @@ func TestVulnerableWorkstation(t *testing.T) {
 	got := evaluate(t, "vulnerable-workstation", rules.Options{})
 	check(t, "vulnerable", got, map[string]string{
 		"SYS-012": "fail/critical", "SYS-013": "fail/warning",
+		"SVC-001": "fail/critical", "SVC-002": "fail/critical", "SVC-003": "fail/critical", "SVC-004": "fail/warning",
 	})
+	objects(t, got["SVC-001"], "VulnSvc", "UnqWarn")
+	objects(t, got["SVC-004"], "Updater")
+	objects(t, got["SVC-002"], `WeakBin — C:\ProgramData\WeakVendor\weak.exe`, `WeakBin — C:\ProgramData\WeakVendor`, `DropDir — C:\ProgramData\Drop`)
+	if f := finding(got["SVC-002"], `DropDir — C:\ProgramData\Drop`); f == nil || f.Level != "warning" {
+		t.Errorf("ajout de fichier seulement → Attention (%+v)", f)
+	}
+	if f := finding(got["SVC-001"], "UnqWarn"); f == nil || f.Level != "warning" {
+		t.Errorf("UnqWarn : dossiers non inscriptibles → Attention (%+v)", f)
+	}
+	if f := finding(got["SVC-001"], "VulnSvc"); f == nil || !strings.Contains(f.Remediation, `'"C:\Apps Tiers\Vuln App\svc.exe"'`) {
+		t.Errorf("remédiation SVC-001 : %+v", f)
+	}
 	s := score.Compute(mapToSlice(got), catalog(t))
 	if !s.Capped && s.RawScore > score.CapScore {
 		t.Error("un Critique doit plafonner le score")
@@ -136,6 +150,7 @@ func TestNonAdminServer(t *testing.T) {
 	got := evaluate(t, "nonadmin-server", rules.Options{})
 	check(t, "nonadmin-server", got, map[string]string{
 		"SYS-012": "fail/warning",
+		"SVC-005": "fail/warning",
 	})
 }
 
@@ -143,6 +158,7 @@ func TestDC(t *testing.T) {
 	got := evaluate(t, "dc", rules.Options{})
 	check(t, "dc", got, map[string]string{
 		"SYS-013": "not_checked",
+		"SVC-005": "fail", // spouleur actif sur un DC, même avec une imprimante
 	})
 }
 
@@ -168,4 +184,27 @@ func mapToSlice(m map[string]rules.Result) []rules.Result {
 		out = append(out, r)
 	}
 	return out
+}
+
+// objects vérifie la liste exacte des objets en défaut.
+func objects(t *testing.T, r rules.Result, want ...string) {
+	t.Helper()
+	var got []string
+	for _, f := range r.Findings {
+		got = append(got, f.Object)
+	}
+	sort.Strings(got)
+	sort.Strings(want)
+	if strings.Join(got, ",") != strings.Join(want, ",") {
+		t.Errorf("%s : objets %v, attendu %v", r.RuleID, got, want)
+	}
+}
+
+func finding(r rules.Result, object string) *rules.Finding {
+	for i := range r.Findings {
+		if r.Findings[i].Object == object {
+			return &r.Findings[i]
+		}
+	}
+	return nil
 }

@@ -16,8 +16,93 @@
     "user": "CORP\\admin",
     "elevated": true,
     "firmware": "uefi",
-    "gaps": {"secure_boot": {"reason": "error", "detail": "UEFISecureBootEnabled not found"}},
+    "gaps": {
+      "secure_boot": {
+        "reason": "error",
+        "detail": "UEFISecureBootEnabled not found"
+      }
+    },
     "portable": false,
     "last_update": "2026-11-15T00:00:00Z"
+  },
+  "services": {
+    "list": [
+      {
+        "name": "Dnscache",
+        "display_name": "Dnscache",
+        "image_path": "C:\\Windows\\system32\\svchost.exe -k NetworkService -p",
+        "executable": "C:\\Windows\\system32\\svchost.exe",
+        "account": "NT AUTHORITY\\NetworkService",
+        "start": 2,
+        "type": 16,
+        "running": true,
+        "in_windows": true,
+        "quoted": false,
+        "binary": {
+          "path": "C:\\Windows\\system32\\svchost.exe",
+          "exists": true
+        },
+        "folder": {
+          "path": "C:\\Windows\\system32",
+          "exists": true
+        },
+        "key": {
+          "path": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache",
+          "exists": true
+        },
+        "args": "-k NetworkService -p"
+      },
+      {
+        "name": "VendorAgent",
+        "display_name": "VendorAgent",
+        "image_path": "\"C:\\Program Files\\Vendor\\agent.exe\"",
+        "executable": "C:\\Program Files\\Vendor\\agent.exe",
+        "account": "LocalSystem",
+        "start": 2,
+        "type": 16,
+        "running": true,
+        "in_windows": false,
+        "quoted": true,
+        "binary": {
+          "path": "C:\\Program Files\\Vendor\\agent.exe",
+          "exists": true
+        },
+        "folder": {
+          "path": "C:\\Program Files\\Vendor",
+          "exists": true
+        },
+        "key": {
+          "path": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\VendorAgent",
+          "exists": true
+        }
+      },
+      {
+        "name": "Spooler",
+        "display_name": "Spooler",
+        "image_path": "C:\\Windows\\System32\\spoolsv.exe",
+        "executable": "C:\\Windows\\System32\\spoolsv.exe",
+        "account": "LocalSystem",
+        "start": 2,
+        "type": 16,
+        "running": true,
+        "in_windows": true,
+        "quoted": false,
+        "binary": {
+          "path": "C:\\Windows\\System32\\spoolsv.exe",
+          "exists": true
+        },
+        "folder": {
+          "path": "C:\\Windows\\System32",
+          "exists": true
+        },
+        "key": {
+          "path": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Spooler",
+          "exists": true
+        }
+      }
+    ],
+    "printers": [
+      "Copieur RDC"
+    ]
   }
 }

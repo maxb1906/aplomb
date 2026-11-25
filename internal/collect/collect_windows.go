@@ -3,6 +3,7 @@ package collect
 import (
 	"time"
 
+	"github.com/maxb1906/aplomb/internal/checks/services"
 	"github.com/maxb1906/aplomb/internal/host"
 	"github.com/maxb1906/aplomb/internal/model"
 )
@@ -10,6 +11,7 @@ import (
 // sections liste les collecteurs, dans l'ordre d'exécution.
 var sections = []section{
 	{"host", func(s *model.Snapshot) { s.Host = host.Collect() }},
+	{"services", func(s *model.Snapshot) { s.Services = services.Collect() }},
 }
 
 // Collect lit la configuration de la machine (lecture seule).

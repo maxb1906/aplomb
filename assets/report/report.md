@@ -23,7 +23,7 @@
 ## {{t "report.issues"}} ({{len .Issues}})
 {{if not .Issues}}
 {{t "report.no_issue"}}
-{{end}}{{range .Issues}}
+{{end}}{{range $it := .Issues}}
 ### {{.LevelLabel}} — {{.Title}} (`{{.ID}}`)
 
 {{.Summary}}
@@ -34,7 +34,7 @@
 {{end}}{{if .Impact}}
 > ⚠ {{.Impact}}
 {{end}}{{range .Findings}}{{if .Object}}
-- **{{.Object}}**{{if ne .Level $.Level}} ({{levelLabel .Level}}){{end}}
+- **{{.Object}}**{{if ne .Level $it.Level}} ({{levelLabel .Level}}){{end}}
 {{end}}{{if .Remediation}}
 ```powershell
 {{.Remediation}}

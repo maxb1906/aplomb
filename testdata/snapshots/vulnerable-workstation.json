@@ -24,5 +24,350 @@
     "portable": true,
     "last_update": "2026-08-01T00:00:00Z",
     "last_update_kb": "KB5040000"
+  },
+  "services": {
+    "list": [
+      {
+        "name": "Dnscache",
+        "display_name": "Dnscache",
+        "image_path": "C:\\Windows\\system32\\svchost.exe -k NetworkService -p",
+        "executable": "C:\\Windows\\system32\\svchost.exe",
+        "account": "NT AUTHORITY\\NetworkService",
+        "start": 2,
+        "type": 16,
+        "running": true,
+        "in_windows": true,
+        "quoted": false,
+        "binary": {
+          "path": "C:\\Windows\\system32\\svchost.exe",
+          "exists": true
+        },
+        "folder": {
+          "path": "C:\\Windows\\system32",
+          "exists": true
+        },
+        "key": {
+          "path": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache",
+          "exists": true
+        },
+        "args": "-k NetworkService -p"
+      },
+      {
+        "name": "VendorAgent",
+        "display_name": "VendorAgent",
+        "image_path": "\"C:\\Program Files\\Vendor\\agent.exe\"",
+        "executable": "C:\\Program Files\\Vendor\\agent.exe",
+        "account": "LocalSystem",
+        "start": 2,
+        "type": 16,
+        "running": true,
+        "in_windows": false,
+        "quoted": true,
+        "binary": {
+          "path": "C:\\Program Files\\Vendor\\agent.exe",
+          "exists": true
+        },
+        "folder": {
+          "path": "C:\\Program Files\\Vendor",
+          "exists": true
+        },
+        "key": {
+          "path": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\VendorAgent",
+          "exists": true
+        }
+      },
+      {
+        "name": "Spooler",
+        "display_name": "Spooler",
+        "image_path": "C:\\Windows\\System32\\spoolsv.exe",
+        "executable": "C:\\Windows\\System32\\spoolsv.exe",
+        "account": "LocalSystem",
+        "start": 2,
+        "type": 16,
+        "running": true,
+        "in_windows": true,
+        "quoted": false,
+        "binary": {
+          "path": "C:\\Windows\\System32\\spoolsv.exe",
+          "exists": true
+        },
+        "folder": {
+          "path": "C:\\Windows\\System32",
+          "exists": true
+        },
+        "key": {
+          "path": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Spooler",
+          "exists": true
+        }
+      },
+      {
+        "name": "VulnSvc",
+        "display_name": "VulnSvc",
+        "image_path": "C:\\Apps Tiers\\Vuln App\\svc.exe",
+        "executable": "C:\\Apps Tiers\\Vuln App\\svc.exe",
+        "account": "LocalSystem",
+        "start": 2,
+        "type": 16,
+        "running": true,
+        "in_windows": false,
+        "quoted": false,
+        "binary": {
+          "path": "C:\\Apps Tiers\\Vuln App\\svc.exe",
+          "exists": true
+        },
+        "folder": {
+          "path": "C:\\Apps Tiers\\Vuln App",
+          "exists": true
+        },
+        "key": {
+          "path": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\VulnSvc",
+          "exists": true
+        },
+        "hijack": [
+          {
+            "plant": "C:\\Apps.exe",
+            "dir": {
+              "path": "C:\\",
+              "exists": true
+            }
+          },
+          {
+            "plant": "C:\\Apps Tiers\\Vuln.exe",
+            "dir": {
+              "path": "C:\\Apps Tiers",
+              "exists": true,
+              "writable_by": [
+                {
+                  "sid": "S-1-5-32-545",
+                  "name": "BUILTIN\\Utilisateurs",
+                  "rights": "add_file"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "UnqWarn",
+        "display_name": "UnqWarn",
+        "image_path": "C:\\Program Files\\Old Tool\\tool.exe -run",
+        "executable": "C:\\Program Files\\Old Tool\\tool.exe",
+        "account": "LocalSystem",
+        "start": 2,
+        "type": 16,
+        "running": true,
+        "in_windows": false,
+        "quoted": false,
+        "binary": {
+          "path": "C:\\Program Files\\Old Tool\\tool.exe",
+          "exists": true
+        },
+        "folder": {
+          "path": "C:\\Program Files\\Old Tool",
+          "exists": true
+        },
+        "key": {
+          "path": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\UnqWarn",
+          "exists": true
+        },
+        "args": "-run",
+        "hijack": [
+          {
+            "plant": "C:\\Program.exe",
+            "dir": {
+              "path": "C:\\",
+              "exists": true
+            }
+          },
+          {
+            "plant": "C:\\Program Files\\Old.exe",
+            "dir": {
+              "path": "C:\\Program Files",
+              "exists": true
+            }
+          }
+        ]
+      },
+      {
+        "name": "UnqDisabled",
+        "display_name": "UnqDisabled",
+        "image_path": "C:\\Program Files\\Dead App\\x.exe",
+        "executable": "C:\\Program Files\\Dead App\\x.exe",
+        "account": "LocalSystem",
+        "start": 4,
+        "type": 16,
+        "running": false,
+        "in_windows": false,
+        "quoted": false,
+        "binary": {
+          "path": "C:\\Program Files\\Dead App\\x.exe",
+          "exists": true
+        },
+        "folder": {
+          "path": "C:\\Program Files\\Dead App",
+          "exists": true
+        },
+        "key": {
+          "path": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\UnqDisabled",
+          "exists": true
+        },
+        "hijack": [
+          {
+            "plant": "C:\\Program.exe",
+            "dir": {
+              "path": "C:\\",
+              "exists": true,
+              "writable_by": [
+                {
+                  "sid": "S-1-1-0",
+                  "name": "Tout le monde",
+                  "rights": "add_file"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "WeakBin",
+        "display_name": "WeakBin",
+        "image_path": "\"C:\\ProgramData\\WeakVendor\\weak.exe\"",
+        "executable": "C:\\ProgramData\\WeakVendor\\weak.exe",
+        "account": "LocalSystem",
+        "start": 2,
+        "type": 16,
+        "running": true,
+        "in_windows": false,
+        "quoted": true,
+        "binary": {
+          "path": "C:\\ProgramData\\WeakVendor\\weak.exe",
+          "exists": true,
+          "writable_by": [
+            {
+              "sid": "S-1-5-32-545",
+              "name": "BUILTIN\\Utilisateurs",
+              "rights": "write"
+            }
+          ]
+        },
+        "folder": {
+          "path": "C:\\ProgramData\\WeakVendor",
+          "exists": true,
+          "writable_by": [
+            {
+              "sid": "S-1-5-32-545",
+              "name": "BUILTIN\\Utilisateurs",
+              "rights": "add_file"
+            }
+          ]
+        },
+        "key": {
+          "path": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\WeakBin",
+          "exists": true
+        },
+        "folder_replace": {
+          "path": "C:\\ProgramData\\WeakVendor",
+          "exists": true,
+          "writable_by": [
+            {
+              "sid": "S-1-5-32-545",
+              "name": "BUILTIN\\Utilisateurs",
+              "rights": "delete_child"
+            }
+          ]
+        }
+      },
+      {
+        "name": "WeakKey",
+        "display_name": "WeakKey",
+        "image_path": "\"C:\\Program Files\\KeyVendor\\k.exe\"",
+        "executable": "C:\\Program Files\\KeyVendor\\k.exe",
+        "account": "LocalSystem",
+        "start": 2,
+        "type": 16,
+        "running": true,
+        "in_windows": false,
+        "quoted": true,
+        "binary": {
+          "path": "C:\\Program Files\\KeyVendor\\k.exe",
+          "exists": true
+        },
+        "folder": {
+          "path": "C:\\Program Files\\KeyVendor",
+          "exists": true
+        },
+        "key": {
+          "path": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\WeakKey",
+          "exists": true,
+          "writable_by": [
+            {
+              "sid": "S-1-5-11",
+              "name": "NT AUTHORITY\\Utilisateurs authentifiés",
+              "rights": "set_value"
+            }
+          ]
+        }
+      },
+      {
+        "name": "Updater",
+        "display_name": "Updater",
+        "image_path": "\"C:\\Users\\Public\\updater.exe\"",
+        "executable": "C:\\Users\\Public\\updater.exe",
+        "account": "LocalSystem",
+        "start": 2,
+        "type": 16,
+        "running": true,
+        "in_windows": false,
+        "quoted": true,
+        "binary": {
+          "path": "C:\\Users\\Public\\updater.exe",
+          "exists": true
+        },
+        "folder": {
+          "path": "C:\\Users\\Public",
+          "exists": true
+        },
+        "key": {
+          "path": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Updater",
+          "exists": true
+        }
+      },
+      {
+        "name": "DropDir",
+        "display_name": "DropDir",
+        "image_path": "\"C:\\ProgramData\\Drop\\d.exe\"",
+        "executable": "C:\\ProgramData\\Drop\\d.exe",
+        "account": "LocalSystem",
+        "start": 2,
+        "type": 16,
+        "running": true,
+        "in_windows": false,
+        "quoted": true,
+        "binary": {
+          "path": "C:\\ProgramData\\Drop\\d.exe",
+          "exists": true
+        },
+        "folder": {
+          "path": "C:\\ProgramData\\Drop",
+          "exists": true,
+          "writable_by": [
+            {
+              "sid": "S-1-5-32-545",
+              "name": "BUILTIN\\Utilisateurs",
+              "rights": "add_file"
+            }
+          ]
+        },
+        "folder_replace": {
+          "path": "C:\\ProgramData\\Drop",
+          "exists": true
+        },
+        "key": {
+          "path": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\DropDir",
+          "exists": true
+        }
+      }
+    ],
+    "printers": []
   }
 }
