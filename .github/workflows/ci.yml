@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: gofmt
+        if: runner.os == 'Linux'
+        run: make fmt-check
+      - run: go vet ./...
+      - name: go vet (GOOS=windows)
+        if: runner.os == 'Linux'
+        run: GOOS=windows go vet ./...
+      - run: go test -race ./...
+
+  build:
+    name: Build (cross-compilation)
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: make build-all
+      - name: SHA-256
+        run: cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
+      - uses: actions/upload-artifact@v7
+        with:
+          name: aplomb-binaries
+          path: dist/
+          if-no-files-found: error
+
+  smoke-windows:
+    name: Lancement de l'exe Windows
+    needs: build
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: aplomb-binaries
+          path: dist
+      - name: Run aplomb.exe
+        shell: pwsh
+        run: |
+          $exe = "./dist/aplomb-windows-amd64.exe"
+          foreach ($a in @(@("--lang","fr","hello"), @("--lang","en","hello"), @(), @("version"), @("help"))) {
+            & $exe @a
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          $out = & $exe --lang fr hello | Out-String
+          if ($out -notmatch "Bonjour depuis Aplomb") { Write-Error "sortie inattendue : $out"; exit 1 }

@@ -1,0 +1,15 @@
+{
+  "app.tagline": "Read-only audit of the security configuration of a Windows workstation or server.",
+  "cli.commands": "Commands:",
+  "cli.cmd_usage": "Usage: aplomb {command} [options]",
+  "cli.error": "Error: {error}",
+  "cli.press_enter": "Press Enter to close this window.",
+  "cli.unknown_command": "Unknown command: {command}",
+  "cli.unknown_lang": "Unknown language: {lang} (available: {available})",
+  "cli.usage": "Usage: aplomb [--lang fr|en] [command] [options]",
+  "cmd.hello": "prints a welcome message (binary smoke test)",
+  "cmd.help": "shows this help",
+  "cmd.version": "prints the version",
+  "hello.greeting": "Hello from Aplomb {version} ({os}/{arch}).",
+  "hello.readonly": "Aplomb changes nothing on the audited machine: it reads the configuration and produces a report."
+}

@@ -1,0 +1,15 @@
+{
+  "app.tagline": "Audit en lecture seule de la configuration de sécurité d'un poste ou serveur Windows.",
+  "cli.commands": "Commandes :",
+  "cli.cmd_usage": "Utilisation : aplomb {command} [options]",
+  "cli.error": "Erreur : {error}",
+  "cli.press_enter": "Appuyez sur Entrée pour fermer cette fenêtre.",
+  "cli.unknown_command": "Commande inconnue : {command}",
+  "cli.unknown_lang": "Langue inconnue : {lang} (disponibles : {available})",
+  "cli.usage": "Utilisation : aplomb [--lang fr|en] [commande] [options]",
+  "cmd.hello": "affiche un message de bienvenue (test du binaire)",
+  "cmd.help": "affiche cette aide",
+  "cmd.version": "affiche la version",
+  "hello.greeting": "Bonjour depuis Aplomb {version} ({os}/{arch}).",
+  "hello.readonly": "Aplomb ne modifie rien sur la machine auditée : il lit la configuration et produit un rapport."
+}
