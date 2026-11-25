@@ -1115,3 +1115,191 @@
         enables, in audit mode, the rule that protects LSASS against credential theft.
       impact: Start in Audit mode and review the logs before switching to Block mode.
       gpo: Computer Configuration > Administrative Templates > Windows Components > Microsoft Defender Antivirus > Microsoft Defender Exploit Guard > Attack Surface Reduction
+
+# ---------------------------------------------------------------- Partages SMB
+- id: SMB-001
+  category: smb
+  level: critical
+  admin: true
+  refs:
+    - name: "MITRE ATT&CK T1039 — Data from Network Shared Drive"
+      url: https://attack.mitre.org/techniques/T1039/
+    - name: "MITRE ATT&CK T1486 — Data Encrypted for Impact"
+      url: https://attack.mitre.org/techniques/T1486/
+  remediation: |
+    Revoke-SmbShareAccess -Name {{ps .share}} -AccountName ((New-Object Security.Principal.SecurityIdentifier {{ps .sid}}).Translate([Security.Principal.NTAccount]).Value) -Force
+    Get-SmbShareAccess -Name {{ps .share}}
+  text:
+    fr:
+      title: Partage modifiable par tout le monde
+      summary: >-
+        Un dossier partagé peut être modifié par tous les utilisateurs (voire sans compte).
+        Un rançongiciel lancé depuis n'importe quel poste peut en chiffrer ou détruire le
+        contenu.
+      detail: >-
+        Partage non administratif dont les droits de partage ET les droits NTFS accordent
+        l'écriture à Tout le monde, Utilisateurs, Utilisateurs authentifiés, Invités ou
+        ANONYMOUS.
+      impact: >-
+        Accorder ensuite les droits au groupe qui en a réellement besoin
+        (Grant-SmbShareAccess) avant que les utilisateurs perdent l'accès.
+    en:
+      title: Share writable by everyone
+      summary: >-
+        A shared folder can be modified by all users (or even without an account).
+        Ransomware started from any workstation can encrypt or destroy its content.
+      detail: >-
+        Non-administrative share whose share permissions AND NTFS permissions grant write
+        access to Everyone, Users, Authenticated Users, Guests or ANONYMOUS.
+      impact: >-
+        Then grant access to the group that really needs it (Grant-SmbShareAccess) before
+        users lose access.
+
+- id: SMB-002
+  category: smb
+  level: warning
+  admin: true
+  refs:
+    - name: "MITRE ATT&CK T1039 — Data from Network Shared Drive"
+      url: https://attack.mitre.org/techniques/T1039/
+  remediation: |
+    Revoke-SmbShareAccess -Name {{ps .share}} -AccountName ((New-Object Security.Principal.SecurityIdentifier {{ps .sid}}).Translate([Security.Principal.NTAccount]).Value) -Force
+    Get-SmbShareAccess -Name {{ps .share}}
+  text:
+    fr:
+      title: Partage lisible par tout le monde
+      summary: >-
+        Un dossier partagé est lisible par tous les utilisateurs. Vérifier qu'il ne contient
+        rien de confidentiel (paie, contrats, sauvegardes…).
+      detail: >-
+        Partage non administratif dont les droits de partage et NTFS accordent la lecture à
+        un groupe large, sans écriture.
+      impact: Accorder ensuite la lecture au groupe qui en a besoin (Grant-SmbShareAccess -AccessRight Read).
+    en:
+      title: Share readable by everyone
+      summary: >-
+        A shared folder can be read by all users. Check that it contains nothing
+        confidential (payroll, contracts, backups…).
+      detail: >-
+        Non-administrative share whose share and NTFS permissions grant read access to a
+        broad group, without write access.
+      impact: Then grant read access to the group that needs it (Grant-SmbShareAccess -AccessRight Read).
+
+- id: SMB-003
+  category: smb
+  level: critical
+  refs:
+    - name: "Microsoft — Detect, enable and disable SMBv1, SMBv2 and SMBv3"
+      url: https://learn.microsoft.com/windows-server/storage/file-server/troubleshoot/detect-enable-and-disable-smbv1-v2-v3
+    - name: "MITRE ATT&CK T1210 — Exploitation of Remote Services"
+      url: https://attack.mitre.org/techniques/T1210/
+  remediation: |
+    Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force
+  text:
+    fr:
+      title: Serveur SMBv1 activé
+      summary: >-
+        La machine accepte encore l'ancien protocole de partage SMBv1, obsolète et à
+        l'origine de rançongiciels comme WannaCry.
+      detail: MSFT_SmbServerConfiguration.EnableSMB1Protocol = vrai (ou registre LanmanServer\Parameters\SMB1 ≠ 0 avec le pilote srv actif).
+      impact: >-
+        Un vieux copieur ou NAS qui ne parle que SMBv1 ne pourra plus accéder aux partages
+        de cette machine : le recenser avant (journal Microsoft-Windows-SMBServer/Audit).
+    en:
+      title: SMBv1 server enabled
+      summary: >-
+        The machine still accepts the old SMBv1 file sharing protocol, obsolete and behind
+        ransomware such as WannaCry.
+      detail: MSFT_SmbServerConfiguration.EnableSMB1Protocol = true (or registry LanmanServer\Parameters\SMB1 ≠ 0 with the srv driver active).
+      impact: >-
+        An old copier or NAS that only speaks SMBv1 will no longer reach this machine's
+        shares: identify them first (Microsoft-Windows-SMBServer/Audit log).
+
+- id: SMB-004
+  category: smb
+  level: critical
+  refs:
+    - name: "Microsoft — Detect, enable and disable SMBv1, SMBv2 and SMBv3"
+      url: https://learn.microsoft.com/windows-server/storage/file-server/troubleshoot/detect-enable-and-disable-smbv1-v2-v3
+  remediation: |
+    Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart
+  text:
+    fr:
+      title: Client SMBv1 activé
+      summary: >-
+        La machine peut encore se connecter en SMBv1, protocole obsolète et vulnérable, à
+        d'autres équipements.
+      detail: Pilote mrxsmb10 présent et non désactivé.
+      impact: >-
+        Redémarrage nécessaire. Les accès à un ancien NAS ou copieur en SMBv1 seront
+        coupés : prévoir sa mise à jour ou son remplacement.
+    en:
+      title: SMBv1 client enabled
+      summary: >-
+        The machine can still connect over SMBv1, an obsolete and vulnerable protocol, to
+        other devices.
+      detail: mrxsmb10 driver present and not disabled.
+      impact: >-
+        A restart is required. Access to an old SMBv1 NAS or copier will stop: plan its
+        update or replacement.
+
+- id: SMB-005
+  category: smb
+  level: warning
+  refs:
+    - name: "Microsoft — Overview of Server Message Block signing"
+      url: https://learn.microsoft.com/troubleshoot/windows-server/networking/overview-server-message-block-signing
+    - name: "MITRE ATT&CK T1557.001 — LLMNR/NBT-NS Poisoning and SMB Relay"
+      url: https://attack.mitre.org/techniques/T1557/001/
+  remediation: |
+    Set-SmbServerConfiguration -RequireSecuritySignature $true -Force
+  text:
+    fr:
+      title: Signature SMB non exigée
+      summary: >-
+        Les échanges de fichiers avec cette machine ne sont pas obligatoirement signés : un
+        attaquant sur le réseau peut relayer une connexion pour se faire passer pour un
+        utilisateur.
+      detail: >-
+        RequireSecuritySignature = faux côté serveur. Attention sur un poste ou un serveur,
+        Critique sur un contrôleur de domaine.
+      impact: Vérifier la compatibilité des anciens équipements (NAS, copieurs) ; léger coût en performances.
+      gpo: Configuration ordinateur > Stratégies > Paramètres Windows > Paramètres de sécurité > Stratégies locales > Options de sécurité > Serveur réseau Microsoft — communications signées numériquement (toujours)
+    en:
+      title: SMB signing not required
+      summary: >-
+        File exchanges with this machine are not required to be signed: an attacker on the
+        network can relay a connection to impersonate a user.
+      detail: >-
+        RequireSecuritySignature = false on the server side. Warning on a workstation or
+        server, Critical on a domain controller.
+      impact: Check compatibility with old devices (NAS, copiers); slight performance cost.
+      gpo: Computer Configuration > Policies > Windows Settings > Security Settings > Local Policies > Security Options > Microsoft network server — Digitally sign communications (always)
+
+- id: SMB-006
+  category: smb
+  level: warning
+  refs:
+    - name: "Microsoft — Guest access in SMB2 and SMB3 disabled by default"
+      url: https://learn.microsoft.com/troubleshoot/windows-server/networking/guest-access-in-smb2-is-disabled-by-default
+  remediation: |
+    Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters' -Name AllowInsecureGuestAuth -Value 0 -Type DWord
+  text:
+    fr:
+      title: Connexions invité non sécurisées autorisées
+      summary: >-
+        La machine accepte de se connecter à des partages sans aucune authentification, ce
+        qui permet à un faux serveur de lui fournir des fichiers piégés.
+      detail: AllowInsecureGuestAuth = 1 (stratégie ou LanmanWorkstation\Parameters).
+      impact: >-
+        Les NAS configurés en accès invité ne seront plus accessibles : leur créer un compte.
+      gpo: Configuration ordinateur > Modèles d'administration > Réseau > Station de travail Lanman > Activer les ouvertures de session d'invité non sécurisées
+    en:
+      title: Insecure guest logons allowed
+      summary: >-
+        The machine agrees to connect to shares without any authentication, which lets a
+        rogue server hand it booby-trapped files.
+      detail: AllowInsecureGuestAuth = 1 (policy or LanmanWorkstation\Parameters).
+      impact: >-
+        NAS devices set up with guest access will no longer be reachable: create an account on them.
+      gpo: Computer Configuration > Administrative Templates > Network > Lanman Workstation > Enable insecure guest logons

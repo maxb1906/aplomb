@@ -734,5 +734,137 @@
     },
     "other_av": [],
     "policy_realtime_off": true
+  },
+  "smb": {
+    "shares": [
+      {
+        "name": "C$",
+        "path": "C:\\",
+        "type": 2147483648,
+        "special": true,
+        "acl_known": true
+      },
+      {
+        "name": "ADMIN$",
+        "path": "C:\\Windows",
+        "type": 2147483648,
+        "special": true,
+        "acl_known": true
+      },
+      {
+        "name": "IPC$",
+        "path": "",
+        "type": 2147483648,
+        "special": true,
+        "acl_known": true
+      },
+      {
+        "name": "Public",
+        "path": "C:\\Public",
+        "type": 0,
+        "special": false,
+        "acl_known": true,
+        "access": [
+          {
+            "sid": "S-1-1-0",
+            "name": "Tout le monde",
+            "read": true,
+            "write": true
+          }
+        ],
+        "ntfs_write": {
+          "path": "C:\\Public",
+          "exists": true,
+          "writable_by": [
+            {
+              "sid": "S-1-1-0",
+              "name": "Tout le monde",
+              "rights": "add_file"
+            }
+          ]
+        },
+        "ntfs_read": {
+          "path": "C:\\Public",
+          "exists": true,
+          "writable_by": [
+            {
+              "sid": "S-1-1-0",
+              "name": "Tout le monde",
+              "rights": "read"
+            }
+          ]
+        }
+      },
+      {
+        "name": "Scans",
+        "path": "C:\\Scans",
+        "type": 0,
+        "special": false,
+        "acl_known": true,
+        "access": [
+          {
+            "sid": "S-1-5-11",
+            "name": "Utilisateurs authentifiés",
+            "read": true,
+            "write": true
+          }
+        ],
+        "ntfs_write": {
+          "path": "C:\\Scans",
+          "exists": true
+        },
+        "ntfs_read": {
+          "path": "C:\\Scans",
+          "exists": true,
+          "writable_by": [
+            {
+              "sid": "S-1-5-11",
+              "name": "Utilisateurs authentifiés",
+              "rights": "read"
+            }
+          ]
+        }
+      },
+      {
+        "name": "Docs",
+        "path": "C:\\Docs",
+        "type": 0,
+        "special": false,
+        "acl_known": true,
+        "access": [
+          {
+            "sid": "S-1-1-0",
+            "name": "Tout le monde",
+            "read": true,
+            "write": false
+          }
+        ],
+        "ntfs_write": {
+          "path": "C:\\Docs",
+          "exists": true
+        },
+        "ntfs_read": {
+          "path": "C:\\Docs",
+          "exists": true,
+          "writable_by": [
+            {
+              "sid": "S-1-1-0",
+              "name": "Tout le monde",
+              "rights": "read"
+            }
+          ]
+        }
+      }
+    ],
+    "server": {
+      "smb1": true,
+      "require_signing": false,
+      "source": "wmi"
+    },
+    "client": {
+      "smb1": true,
+      "insecure_guest": true,
+      "insecure_guest_policy": true
+    }
   }
 }

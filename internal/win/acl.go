@@ -13,6 +13,7 @@ const (
 	KindDirCreate              // créer un fichier dans un dossier
 	KindDirReplace             // supprimer/remplacer un fichier d'un dossier
 	KindKey                    // modifier une clé de registre
+	KindDirRead                // lister / lire un dossier
 )
 
 // Droits d'accès Windows utiles à l'analyse.
@@ -24,6 +25,8 @@ const (
 	rightWriteOwner  = 0x80000
 	rightGenericAll  = 0x10000000
 	rightGenericW    = 0x40000000
+	rightGenericR    = 0x80000000
+	rightReadData    = 0x1
 )
 
 // lowPrivSIDs sont les groupes dont les membres ne sont pas administrateurs.
@@ -56,6 +59,11 @@ func DescribeRights(mask uint32, kind Kind) []string {
 		}
 	}
 	switch kind {
+	case KindDirRead:
+		add(rightReadData, "read")
+		add(rightGenericR, "generic_read")
+		add(rightGenericAll, "generic_all")
+		return out
 	case KindFile:
 		add(rightWriteData, "write")
 	case KindDirCreate:
@@ -95,4 +103,11 @@ func SortedSIDs(m map[string]uint32) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// ShareRights traduit un masque de droits de partage en (lecture, écriture).
+func ShareRights(mask uint32) (read, write bool) {
+	read = mask&(rightReadData|rightGenericR|rightGenericAll) != 0
+	write = mask&(rightWriteData|rightAppend|rightGenericW|rightGenericAll|rightWriteDAC|rightWriteOwner) != 0
+	return
 }

@@ -86,11 +86,26 @@ func checkACL(path string, kind Kind) model.PathACL {
 		return res
 	}
 	res.Exists = true
-	dacl, _, err := sd.DACL()
-	if err != nil || dacl == nil {
+	eff, null := LowPrivMasks(sd)
+	if null {
 		// Pas de DACL : accès total pour tout le monde.
 		res.WritableBy = []model.Principal{{SID: "S-1-1-0", Name: AccountName("S-1-1-0"), Rights: "null_dacl"}}
 		return res
+	}
+	for _, sid := range SortedSIDs(eff) {
+		if rights := DescribeRights(eff[sid], kind); len(rights) > 0 {
+			res.WritableBy = append(res.WritableBy, model.Principal{SID: sid, Name: AccountName(sid), Rights: strings.Join(rights, ",")})
+		}
+	}
+	return res
+}
+
+// LowPrivMasks renvoie les droits effectifs des groupes non administrateurs
+// dans le descripteur sd ; null est vrai s'il n'a pas de DACL (accès total).
+func LowPrivMasks(sd *windows.SECURITY_DESCRIPTOR) (eff map[string]uint32, null bool) {
+	dacl, _, err := sd.DACL()
+	if err != nil || dacl == nil {
+		return nil, true
 	}
 	allow, deny := map[string]uint32{}, map[string]uint32{}
 	for i := uint32(0); i < uint32(dacl.AceCount); i++ {
@@ -112,11 +127,5 @@ func checkACL(path string, kind Kind) model.PathACL {
 			deny[sid] |= uint32(ace.Mask)
 		}
 	}
-	eff := EffectiveMasks(allow, deny)
-	for _, sid := range SortedSIDs(eff) {
-		if rights := DescribeRights(eff[sid], kind); len(rights) > 0 {
-			res.WritableBy = append(res.WritableBy, model.Principal{SID: sid, Name: AccountName(sid), Rights: strings.Join(rights, ",")})
-		}
-	}
-	return res
+	return EffectiveMasks(allow, deny), false
 }

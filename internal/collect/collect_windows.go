@@ -7,6 +7,7 @@ import (
 	"github.com/maxb1906/aplomb/internal/checks/bitlocker"
 	"github.com/maxb1906/aplomb/internal/checks/defender"
 	"github.com/maxb1906/aplomb/internal/checks/services"
+	"github.com/maxb1906/aplomb/internal/checks/smb"
 	"github.com/maxb1906/aplomb/internal/checks/tasks"
 	"github.com/maxb1906/aplomb/internal/host"
 	"github.com/maxb1906/aplomb/internal/model"
@@ -20,6 +21,7 @@ var sections = []section{
 	{"accounts", func(s *model.Snapshot) { s.Accounts = accounts.Collect(s.Host) }},
 	{"bitlocker", func(s *model.Snapshot) { s.BitLocker = bitlocker.Collect() }},
 	{"defender", func(s *model.Snapshot) { s.Defender = defender.Collect(s.Host) }},
+	{"smb", func(s *model.Snapshot) { s.SMB = smb.Collect() }},
 }
 
 // Collect lit la configuration de la machine (lecture seule).

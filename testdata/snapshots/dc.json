@@ -185,5 +185,99 @@
       "submit_samples": 1,
       "pua": 1
     }
+  },
+  "smb": {
+    "shares": [
+      {
+        "name": "C$",
+        "path": "C:\\",
+        "type": 2147483648,
+        "special": true,
+        "acl_known": true
+      },
+      {
+        "name": "ADMIN$",
+        "path": "C:\\Windows",
+        "type": 2147483648,
+        "special": true,
+        "acl_known": true
+      },
+      {
+        "name": "IPC$",
+        "path": "",
+        "type": 2147483648,
+        "special": true,
+        "acl_known": true
+      },
+      {
+        "name": "SYSVOL",
+        "path": "C:\\Windows\\SYSVOL\\sysvol",
+        "type": 0,
+        "special": false,
+        "acl_known": true,
+        "access": [
+          {
+            "sid": "S-1-5-11",
+            "name": "Utilisateurs authentifiés",
+            "read": true,
+            "write": false
+          }
+        ],
+        "ntfs_write": {
+          "path": "C:\\Windows\\SYSVOL\\sysvol",
+          "exists": true
+        },
+        "ntfs_read": {
+          "path": "C:\\Windows\\SYSVOL\\sysvol",
+          "exists": true,
+          "writable_by": [
+            {
+              "sid": "S-1-5-11",
+              "name": "Utilisateurs authentifiés",
+              "rights": "read"
+            }
+          ]
+        }
+      },
+      {
+        "name": "NETLOGON",
+        "path": "C:\\Windows\\SYSVOL\\sysvol\\corp.example\\SCRIPTS",
+        "type": 0,
+        "special": false,
+        "acl_known": true,
+        "access": [
+          {
+            "sid": "S-1-1-0",
+            "name": "Tout le monde",
+            "read": true,
+            "write": false
+          }
+        ],
+        "ntfs_write": {
+          "path": "C:\\Windows\\SYSVOL\\sysvol\\corp.example\\SCRIPTS",
+          "exists": true
+        },
+        "ntfs_read": {
+          "path": "C:\\Windows\\SYSVOL\\sysvol\\corp.example\\SCRIPTS",
+          "exists": true,
+          "writable_by": [
+            {
+              "sid": "S-1-5-11",
+              "name": "Utilisateurs authentifiés",
+              "rights": "read"
+            }
+          ]
+        }
+      }
+    ],
+    "server": {
+      "smb1": false,
+      "require_signing": false,
+      "source": "wmi"
+    },
+    "client": {
+      "smb1": false,
+      "insecure_guest": false
+    }
   }
 }
