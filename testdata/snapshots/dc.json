@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "tool": "aplomb",
+  "version": "fixture",
+  "collected_at": "2026-11-20T10:00:00Z",
+  "host": {
+    "name": "DC01",
+    "os": "Windows Server 2019 Standard",
+    "build": "17763",
+    "installation_type": "Server",
+    "product_type": "LanmanNT",
+    "role": "dc",
+    "arch": "amd64",
+    "join_type": "domain",
+    "domain": "corp.example",
+    "user": "CORP\\admin",
+    "elevated": true,
+    "firmware": "uefi",
+    "gaps": {"secure_boot": {"reason": "error", "detail": "UEFISecureBootEnabled not found"}},
+    "portable": false,
+    "last_update": "2026-11-15T00:00:00Z"
+  }
+}

@@ -1,0 +1,84 @@
+# Catalogue des règles d'audit d'Aplomb.
+#
+# Règles maison, pragmatiques pour des PME. Pas de CIS (ni contenu, ni
+# identifiants). Les références sont indicatives : on cite la source, on ne
+# recopie pas son contenu.
+#
+# Champs :
+#   id           identifiant stable (CAT-NNN), jamais réutilisé
+#   category     system, services, tasks, accounts, bitlocker, defender, smb, firewall
+#   level        info | warning | critical (niveau par défaut ; un constat peut le préciser)
+#   profiles     workstation, server, dc (vide : tous)
+#   admin        true si le contrôle exige les droits administrateur
+#   refs         références indicatives
+#   remediation  commande PowerShell (modèle Go text/template ; {{ps .x}} cite une valeur)
+#   text.fr/en   title, summary (pour le client), detail (technique), impact, gpo
+#                Les variables {nom} sont remplacées par les paramètres du constat.
+
+# ---------------------------------------------------------------- Système
+- id: SYS-012
+  category: system
+  level: warning
+  refs:
+    - name: "ANSSI — Guide d'hygiène informatique (mises à jour)"
+      url: https://cyber.gouv.fr/publications/guide-dhygiene-informatique
+    - name: "MITRE ATT&CK T1068 — Exploitation for Privilege Escalation"
+      url: https://attack.mitre.org/techniques/T1068/
+  remediation: |
+    Start-Process 'ms-settings:windowsupdate'   # ou : UsoClient StartInteractiveScan
+  text:
+    fr:
+      title: Mises à jour Windows en retard
+      summary: >-
+        La dernière mise à jour installée date du {date} ({days} jours). Les failles
+        corrigées depuis restent exploitables sur cette machine.
+      detail: >-
+        Date la plus récente de Win32_QuickFixEngineering ({kb}). Attention au-delà de
+        30 jours, Critique au-delà de 60 jours.
+      impact: L'installation des mises à jour peut demander un redémarrage.
+      gpo: Configuration ordinateur > Modèles d'administration > Composants Windows > Windows Update
+    en:
+      title: Windows updates are overdue
+      summary: >-
+        The latest installed update dates from {date} ({days} days ago). Vulnerabilities
+        fixed since then remain exploitable on this machine.
+      detail: >-
+        Most recent date in Win32_QuickFixEngineering ({kb}). Warning beyond 30 days,
+        Critical beyond 60 days.
+      impact: Installing updates may require a restart.
+      gpo: Computer Configuration > Administrative Templates > Windows Components > Windows Update
+
+- id: SYS-013
+  category: system
+  level: warning
+  refs:
+    - name: "Microsoft — Secure Boot"
+      url: https://learn.microsoft.com/windows-hardware/design/device-experiences/oem-secure-boot
+    - name: "MITRE ATT&CK T1542 — Pre-OS Boot"
+      url: https://attack.mitre.org/techniques/T1542/
+  remediation: |
+    # Secure Boot s'active dans le firmware (UEFI) de la machine, pas depuis Windows.
+    Confirm-SecureBootUEFI
+  text:
+    fr:
+      title: Démarrage sécurisé (Secure Boot) désactivé
+      summary: >-
+        Le démarrage sécurisé empêche un logiciel malveillant de se lancer avant Windows.
+        Il est désactivé ou indisponible (firmware {firmware}).
+      detail: >-
+        HKLM\SYSTEM\CurrentControlSet\Control\SecureBoot\State\UEFISecureBootEnabled ≠ 1,
+        ou démarrage en mode BIOS hérité (Secure Boot impossible sans UEFI).
+      impact: >-
+        À activer dans le setup UEFI. Passer d'un démarrage BIOS à UEFI demande de
+        convertir le disque (mbr2gpt) : à planifier.
+    en:
+      title: Secure Boot is disabled
+      summary: >-
+        Secure Boot prevents malware from starting before Windows. It is disabled or
+        unavailable (firmware {firmware}).
+      detail: >-
+        HKLM\SYSTEM\CurrentControlSet\Control\SecureBoot\State\UEFISecureBootEnabled ≠ 1,
+        or legacy BIOS boot (Secure Boot requires UEFI).
+      impact: >-
+        Enable it in the UEFI setup. Moving from BIOS to UEFI boot requires converting
+        the disk (mbr2gpt): plan ahead.

@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "tool": "aplomb",
+  "version": "fixture",
+  "collected_at": "2026-11-20T10:00:00Z",
+  "host": {
+    "name": "PC-ACCUEIL-01",
+    "os": "Windows 10 Pro",
+    "edition": "Professional",
+    "display_version": "22H2",
+    "build": "19045",
+    "installation_type": "Client",
+    "product_type": "WinNT",
+    "role": "workstation",
+    "arch": "amd64",
+    "join_type": "workgroup",
+    "domain": "WORKGROUP",
+    "entra_joined": false,
+    "user": "PC-ACCUEIL-01\\admin",
+    "elevated": true,
+    "firmware": "bios",
+    "secure_boot": false,
+    "tpm_present": false,
+    "portable": true,
+    "last_update": "2026-08-01T00:00:00Z",
+    "last_update_kb": "KB5040000"
+  }
+}

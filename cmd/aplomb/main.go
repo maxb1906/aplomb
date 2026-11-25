@@ -15,6 +15,7 @@ import (
 	"runtime/debug"
 	"strings"
 
+	_ "github.com/maxb1906/aplomb/internal/checks/all" // enregistre les contrôles
 	"github.com/maxb1906/aplomb/internal/i18n"
 )
 
@@ -45,7 +46,7 @@ type command struct {
 var commands = map[string]command{}
 
 // order fixe l'ordre d'affichage des commandes dans l'aide.
-var order = []string{"host", "hello", "version", "help"}
+var order = []string{"host", "rules", "hello", "version", "help"}
 
 // defaultCommand est lancée sans argument (double-clic sur l'exe).
 const defaultCommand = "hello"
@@ -53,6 +54,7 @@ const defaultCommand = "hello"
 func init() {
 	commands["hello"] = command{run: cmdHello}
 	commands["host"] = command{run: cmdHost}
+	commands["rules"] = command{run: cmdRules}
 	commands["version"] = command{run: func(e *env, _ []string) int { fmt.Fprintln(e.stdout, version); return 0 }}
 	commands["help"] = command{run: func(e *env, _ []string) int { usage(e, e.stdout); return 0 }}
 }

@@ -8,3 +8,8 @@ import "embed"
 //
 //go:embed i18n/*.json
 var I18n embed.FS
+
+// Rules contient le catalogue des règles d'audit.
+//
+//go:embed rules.yaml
+var Rules []byte

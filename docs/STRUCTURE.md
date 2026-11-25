@@ -1,7 +1,7 @@
 # Aplomb — Analyseur d'hygiène et de sécurité Windows (Local Hardening Audit) — Structure projet
 
 > Fichier de cadrage et de suivi d'implémentation. Il consigne tous les choix du projet et sert de référence à Claude Code pendant le développement sur la devbox Oracle.
-> Statut : **étapes 0-1 terminées** — en cours : étape 2 (moteur).
+> Statut : **étapes 0-2 terminées** — en cours : étape 3 (rapport v0).
 > Nom : **Aplomb** — licence **GPL-3.0** — dépôt GitHub public — projet **séparé** d'Arpent.
 
 ---
@@ -269,7 +269,7 @@ Chaque contrôle implémente la même interface : `Collect()` (lit l'état brut)
 
 - [x] **Étape 0 — Socle** : dépôt, module Go, licence, README FR/EN, i18n, `Makefile`, GitHub Actions (tests Linux + exécution sur `windows-latest`), binaire « hello » sur Windows.
 - [x] **Étape 1 — Contexte machine** : OS, rôle, domaine, élévation, matériel, dernière MAJ → JSON.
-- [ ] **Étape 2 — Moteur** : format `rules.yaml`, statuts, profils, score, fixtures de test.
+- [x] **Étape 2 — Moteur** : format `rules.yaml`, statuts, profils, score, fixtures de test.
 - [ ] **Étape 3 — Rapport v0** : HTML + Markdown + JSON à partir des résultats, ouverture automatique.
 - [ ] **Étape 4 — Services** : énumération, unquoted paths, ACL binaires/dossiers/clés.
 - [ ] **Étape 5 — Tâches planifiées.**
@@ -310,3 +310,4 @@ Chaque étape se termine par un exe Windows testable.
 - **2026-11-25** — Stack Go (API natives, CLI v1), licence GPL-3.0, FR + EN validés. **Cadrage terminé.**
 - **2026-11-25** — **Étape 0 (socle)** : module `github.com/maxb1906/aplomb` (Go 1.27.4, aucune dépendance externe pour l'instant), licence GPL-3.0, README FR/EN, `CLAUDE.md`, package `internal/i18n` repris d'Arpent (variable `APLOMB_LANG`, test de complétude FR/EN), `Makefile` (`windows/amd64` + `windows/arm64`, `CGO_ENABLED=0`, `go vet` aussi en `GOOS=windows`), GitHub Actions (tests Ubuntu + `windows-latest`, cross-compilation avec SHA-256, lancement de l'exe sur `windows-latest`). CLI : `hello`, `version`, `help` ; **sans argument, l'exe affiche `hello` en attendant l'audit (étape 3)**. Lancé par double-clic, l'exe attend « Entrée » avant de fermer la console (repris d'Arpent, mais à chaque sortie et pas seulement en cas d'erreur). Pas de GoReleaser ni de workflow de release à ce stade (étape 13).
 - **2026-11-25** — **Étape 1 (contexte machine)** : `internal/model` (snapshot JSON versionné, valeurs tri-états, `Gaps` pour expliquer une donnée manquante : `requires_admin` / `error` / `absent`), `internal/win` (registre en lecture seule, vue 64 bits, lecture « stratégie puis local » pour la détection GPO ; COM/WMI via `go-ole` + `yusufpapurcu/wmi`), `internal/host`. Sources : registre `CurrentVersion` (nom corrigé en « Windows 11 » si build ≥ 22000), `ProductType` → rôle, `NetGetJoinInformation`, clé `CloudDomainJoin` (Entra ID), jeton du processus (élévation), `GetFirmwareType`, `UEFISecureBootEnabled`, **TPM via TBS `Tbsi_GetDeviceInfo` (sans admin, contrairement à `Win32_Tpm`)**, châssis SMBIOS (+ batterie) → portable, `Win32_QuickFixEngineering` → dernière MAJ (date `InstalledOn`, peu fiable sur certains correctifs : limite connue). Commande `aplomb host` (JSON). Dépendances ajoutées : `golang.org/x/sys` v0.50.0, `go-ole` v1.3.0, `yusufpapurcu/wmi` v1.2.4, `yaml.v3`.
+- **2026-11-25** — **Étape 2 (moteur)** : `assets/rules.yaml` = métadonnées + textes FR/EN (titre, résumé client, détail technique, impact, emplacement GPO) + modèle PowerShell de remédiation (`text/template`, fonction `ps` pour citer une valeur) ; **la logique de chaque règle est une fonction Go** enregistrée sous le même identifiant (`rules.Register`) dans `internal/checks/<catégorie>` — un YAML purement déclaratif ne pouvait pas exprimer les contrôles (ACL, chemins…). Validation au chargement (catégorie, niveau, profils, textes FR et EN, modèle) et test « chaque règle a sa logique et inversement ». Un constat peut préciser son niveau (ex. Critique seulement si le dossier est réellement inscriptible). Règle désactivée dans la config → `accepted_risk` avec justification si elle est en défaut. Score : poids 10/4/1, non vérifiés / non applicables / acceptés exclus, couverture en %, note A ≥ 90, B ≥ 75, C ≥ 60, D ≥ 40, E ; **plafond : un Critique en défaut ramène le score à 74 au plus (note C), le score brut reste dans le JSON**. Fixtures dans `testdata/snapshots/` (poste sain, poste vulnérable, serveur sans admin, DC). Premières règles : SYS-012 (mises à jour), SYS-013 (Secure Boot). Commande `aplomb rules`.

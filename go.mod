@@ -7,3 +7,5 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4
 	golang.org/x/sys v0.50.0
 )
+
+require gopkg.in/yaml.v3 v3.0.1 // indirect

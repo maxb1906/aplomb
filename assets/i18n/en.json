@@ -10,7 +10,11 @@
   "cmd.hello": "prints a welcome message (binary smoke test)",
   "cmd.help": "shows this help",
   "cmd.host": "prints the machine context (JSON)",
+  "cmd.rules": "lists the audit rules",
   "cmd.version": "prints the version",
   "hello.greeting": "Hello from Aplomb {version} ({os}/{arch}).",
-  "hello.readonly": "Aplomb changes nothing on the audited machine: it reads the configuration and produces a report."
+  "hello.readonly": "Aplomb changes nothing on the audited machine: it reads the configuration and produces a report.",
+  "level.critical": "Critical",
+  "level.info": "Info",
+  "level.warning": "Warning"
 }

@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "tool": "aplomb",
+  "version": "fixture",
+  "collected_at": "2026-11-20T10:00:00Z",
+  "host": {
+    "name": "PC-SAIN-01",
+    "os": "Windows 11 Pro",
+    "edition": "Professional",
+    "display_version": "24H2",
+    "build": "26100",
+    "ubr": 2314,
+    "installation_type": "Client",
+    "product_type": "WinNT",
+    "role": "workstation",
+    "arch": "amd64",
+    "join_type": "domain",
+    "domain": "corp.example",
+    "entra_joined": false,
+    "user": "CORP\\tech",
+    "elevated": true,
+    "firmware": "uefi",
+    "secure_boot": true,
+    "tpm_present": true,
+    "tpm_version": "2.0",
+    "portable": true,
+    "last_update": "2026-11-12T00:00:00Z",
+    "last_update_kb": "KB5099999"
+  }
+}

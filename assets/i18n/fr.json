@@ -10,7 +10,11 @@
   "cmd.hello": "affiche un message de bienvenue (test du binaire)",
   "cmd.help": "affiche cette aide",
   "cmd.host": "affiche le contexte de la machine (JSON)",
+  "cmd.rules": "liste les règles d'audit",
   "cmd.version": "affiche la version",
   "hello.greeting": "Bonjour depuis Aplomb {version} ({os}/{arch}).",
-  "hello.readonly": "Aplomb ne modifie rien sur la machine auditée : il lit la configuration et produit un rapport."
+  "hello.readonly": "Aplomb ne modifie rien sur la machine auditée : il lit la configuration et produit un rapport.",
+  "level.critical": "Critique",
+  "level.info": "Info",
+  "level.warning": "Attention"
 }
