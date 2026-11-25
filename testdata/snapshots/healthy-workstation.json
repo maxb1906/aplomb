@@ -25,7 +25,8 @@
     "tpm_version": "2.0",
     "portable": true,
     "last_update": "2026-11-12T00:00:00Z",
-    "last_update_kb": "KB5099999"
+    "last_update_kb": "KB5099999",
+    "computer_dn": "CN=PC-SAIN-01,OU=Postes,DC=corp,DC=example"
   },
   "services": {
     "list": [
@@ -167,5 +168,62 @@
       }
     ],
     "partial": false
+  },
+  "accounts": {
+    "policy": {
+      "min_length": 14,
+      "max_age_days": -1,
+      "min_age_days": 0,
+      "history": 0,
+      "lockout_threshold": 10,
+      "lockout_duration_min": 15,
+      "lockout_window_min": 15,
+      "complexity": true
+    },
+    "users": [
+      {
+        "name": "Administrateur",
+        "rid": 500,
+        "enabled": false,
+        "password_not_required": false,
+        "password_never_expires": false
+      },
+      {
+        "name": "Invité",
+        "rid": 501,
+        "enabled": false,
+        "password_not_required": true,
+        "password_never_expires": false
+      },
+      {
+        "name": "tech",
+        "rid": 1001,
+        "enabled": true,
+        "password_not_required": false,
+        "password_never_expires": false
+      }
+    ],
+    "admins": [
+      {
+        "name": "PC-SAIN-01\\Administrateur",
+        "sid": "S-1-5-21-9-9-9-500",
+        "kind": "user"
+      },
+      {
+        "name": "CORP\\Admins du domaine",
+        "sid": "S-1-5-21-1-2-3-512",
+        "kind": "group"
+      },
+      {
+        "name": "CORP\\tech",
+        "sid": "S-1-5-21-1-2-3-1105",
+        "kind": "user"
+      }
+    ],
+    "laps": {
+      "windows_configured": true,
+      "backup_directory": 2,
+      "legacy": false
+    }
   }
 }

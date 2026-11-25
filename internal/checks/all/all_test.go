@@ -108,6 +108,8 @@ func TestHealthyWorkstation(t *testing.T) {
 		"SYS-012": "pass", "SYS-013": "pass",
 		"SVC-001": "pass", "SVC-002": "pass", "SVC-003": "pass", "SVC-004": "pass", "SVC-005": "not_applicable",
 		"TSK-001": "pass", "TSK-002": "pass", "TSK-003": "pass", "TSK-004": "pass", "TSK-005": "pass",
+		"ACC-001": "pass", "ACC-002": "pass", "ACC-003": "pass", "ACC-004": "pass", "ACC-005": "pass",
+		"ACC-006": "pass", "ACC-007": "pass", "ACC-008": "pass", "ACC-009": "pass", "ACC-010": "pass",
 	})
 	for id, r := range got {
 		if r.Status == rules.Fail {
@@ -162,7 +164,14 @@ func TestNonAdminServer(t *testing.T) {
 		"SYS-012": "fail/warning",
 		"SVC-005": "fail/warning",
 		"TSK-001": "pass",
+		"ACC-001": "fail/warning", "ACC-007": "not_checked", "ACC-010": "fail/warning",
 	})
+	if !got["ACC-001"].GPO || !strings.Contains(got["ACC-010"].Findings[0].Remediation, "OU=Serveurs,DC=corp,DC=example") {
+		t.Errorf("domaine : GPO et OU attendues (%+v)", got["ACC-010"])
+	}
+	if got["ACC-007"].Reason != "requires_admin" {
+		t.Error("ACC-007 : raison requires_admin attendue")
+	}
 	if got["TSK-001"].Note != "partial_tasks" {
 		t.Error("sans admin, la vérification des tâches doit être signalée comme partielle")
 	}
@@ -174,6 +183,7 @@ func TestDC(t *testing.T) {
 		"SYS-013": "not_checked",
 		"SVC-005": "fail", // spouleur actif sur un DC, même avec une imprimante
 		"TSK-001": "not_checked",
+		"ACC-001": "fail", "ACC-002": "fail", "ACC-006": "not_applicable", "ACC-007": "pass", "ACC-010": "not_applicable",
 	})
 }
 

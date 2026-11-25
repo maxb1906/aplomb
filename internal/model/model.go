@@ -58,6 +58,7 @@ type Snapshot struct {
 	Host        Host      `json:"host"`
 	Services    *Services `json:"services,omitempty"`
 	Tasks       *Tasks    `json:"tasks,omitempty"`
+	Accounts    *Accounts `json:"accounts,omitempty"`
 	// Gaps liste les sections entières non collectées (clé : nom de section).
 	Gaps Gaps `json:"gaps,omitempty"`
 }
@@ -76,6 +77,7 @@ type Host struct {
 	Arch             string     `json:"arch"`
 	JoinType         string     `json:"join_type"` // workgroup, domain, unknown
 	Domain           string     `json:"domain,omitempty"`
+	ComputerDN       string     `json:"computer_dn,omitempty"`
 	EntraJoined      bool       `json:"entra_joined"`
 	EntraTenant      string     `json:"entra_tenant,omitempty"`
 	User             string     `json:"user"`

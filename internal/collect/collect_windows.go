@@ -3,6 +3,7 @@ package collect
 import (
 	"time"
 
+	"github.com/maxb1906/aplomb/internal/checks/accounts"
 	"github.com/maxb1906/aplomb/internal/checks/services"
 	"github.com/maxb1906/aplomb/internal/checks/tasks"
 	"github.com/maxb1906/aplomb/internal/host"
@@ -14,6 +15,7 @@ var sections = []section{
 	{"host", func(s *model.Snapshot) { s.Host = host.Collect() }},
 	{"services", func(s *model.Snapshot) { s.Services = services.Collect() }},
 	{"tasks", func(s *model.Snapshot) { s.Tasks = tasks.Collect(s.Host.Elevated) }},
+	{"accounts", func(s *model.Snapshot) { s.Accounts = accounts.Collect(s.Host) }},
 }
 
 // Collect lit la configuration de la machine (lecture seule).

@@ -86,6 +86,7 @@ func joinInfo(h *model.Host) {
 		if d := win.ReadString(`HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters`, "Domain"); d != "" {
 			h.Domain = d
 		}
+		h.ComputerDN = win.ReadString(`HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Group Policy\State\Machine`, "Distinguished-Name")
 	}
 }
 

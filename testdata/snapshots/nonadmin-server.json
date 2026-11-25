@@ -23,7 +23,8 @@
     "portable": false,
     "last_update": "2026-10-10T00:00:00Z",
     "last_update_kb": "KB5098888",
-    "gaps": {}
+    "gaps": {},
+    "computer_dn": "CN=SRV-FICHIERS,OU=Serveurs,DC=corp,DC=example"
   },
   "services": {
     "list": [
@@ -163,5 +164,44 @@
       }
     ],
     "partial": true
+  },
+  "accounts": {
+    "policy": {
+      "min_length": 12,
+      "max_age_days": -1,
+      "min_age_days": 0,
+      "history": 0,
+      "lockout_threshold": 5,
+      "lockout_duration_min": 15,
+      "lockout_window_min": 15,
+      "complexity": true
+    },
+    "users": [
+      {
+        "name": "Administrateur",
+        "rid": 500,
+        "enabled": false,
+        "password_not_required": false,
+        "password_never_expires": false
+      },
+      {
+        "name": "Invité",
+        "rid": 501,
+        "enabled": false,
+        "password_not_required": false,
+        "password_never_expires": false
+      }
+    ],
+    "gaps": {
+      "admins": {
+        "reason": "requires_admin",
+        "detail": "NetLocalGroupGetMembers : Access is denied."
+      }
+    },
+    "laps": {
+      "windows_configured": false,
+      "backup_directory": 0,
+      "legacy": false
+    }
   }
 }

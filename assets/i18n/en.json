@@ -72,6 +72,7 @@
   "level.info": "Info",
   "level.warning": "Warning",
   "note.absent": "Feature not present on this machine",
+  "note.not_joined": "Machine joined to neither a domain nor Entra ID",
   "note.partial_tasks": "Partial check: without administrator rights, other accounts' tasks are not visible",
   "note.profile": "Does not apply to this kind of machine ({a0})",
   "reason.absent": "Feature not present on this machine",

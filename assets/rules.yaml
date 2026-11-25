@@ -408,3 +408,320 @@
         are useless and can be deleted.
       detail: Action executable not found after resolving variables and the system path.
       impact: Check that the program is not on a network or removable drive missing during the audit.
+
+# ---------------------------------------------------------------- Comptes et mots de passe
+- id: ACC-001
+  category: accounts
+  level: warning
+  refs:
+    - name: "ANSSI — Recommandations relatives à l'authentification multifacteur et aux mots de passe"
+      url: https://cyber.gouv.fr/publications/recommandations-relatives-lauthentification-multifacteur-et-aux-mots-de-passe
+    - name: "MITRE ATT&CK T1110 — Brute Force"
+      url: https://attack.mitre.org/techniques/T1110/
+  remediation: |
+    net accounts /minpwlen:{{.want}}
+  text:
+    fr:
+      title: Longueur minimale des mots de passe insuffisante
+      summary: >-
+        Les mots de passe peuvent ne faire que {current} caractères. Des mots de passe courts
+        se devinent ou se cassent rapidement ; il en faudrait au moins {want}.
+      detail: >-
+        NetUserModalsGet : usrmod0_min_passwd_len. Seuil : 12 caractères pour un poste,
+        14 pour un serveur ou un contrôleur de domaine.
+      impact: S'applique aux prochains changements de mot de passe ; prévenir les utilisateurs.
+      gpo: Configuration ordinateur > Stratégies > Paramètres Windows > Paramètres de sécurité > Stratégies de comptes > Stratégie de mot de passe > Longueur minimale du mot de passe
+    en:
+      title: Minimum password length too short
+      summary: >-
+        Passwords can be as short as {current} characters. Short passwords are quickly
+        guessed or cracked; at least {want} would be needed.
+      detail: >-
+        NetUserModalsGet: usrmod0_min_passwd_len. Threshold: 12 characters for a
+        workstation, 14 for a server or domain controller.
+      impact: Applies at the next password changes; let users know.
+      gpo: Computer Configuration > Policies > Windows Settings > Security Settings > Account Policies > Password Policy > Minimum password length
+
+- id: ACC-002
+  category: accounts
+  level: warning
+  refs:
+    - name: "MITRE ATT&CK T1110.001 — Password Guessing"
+      url: https://attack.mitre.org/techniques/T1110/001/
+  remediation: |
+    net accounts /lockoutthreshold:10 /lockoutwindow:15 /lockoutduration:15
+  text:
+    fr:
+      title: Aucun verrouillage des comptes après des échecs de connexion
+      summary: >-
+        Un attaquant peut essayer autant de mots de passe qu'il veut sans que le compte ne
+        soit bloqué.
+      detail: >-
+        NetUserModalsGet niveau 3 : seuil de verrouillage = 0.
+      impact: >-
+        Un seuil trop bas peut bloquer des utilisateurs (ou être utilisé pour les bloquer
+        volontairement) : 10 essais sur 15 minutes est un compromis courant.
+      gpo: Configuration ordinateur > Stratégies > Paramètres Windows > Paramètres de sécurité > Stratégies de comptes > Stratégie de verrouillage du compte
+    en:
+      title: No account lockout after failed logons
+      summary: >-
+        An attacker can try as many passwords as they want without the account being
+        locked.
+      detail: NetUserModalsGet level 3 — lockout threshold = 0.
+      impact: >-
+        A threshold that is too low can lock users out (or be abused to lock them out on
+        purpose): 10 attempts over 15 minutes is a common compromise.
+      gpo: Computer Configuration > Policies > Windows Settings > Security Settings > Account Policies > Account Lockout Policy
+
+- id: ACC-003
+  category: accounts
+  level: info
+  refs:
+    - name: "ANSSI — Recommandations relatives à l'authentification multifacteur et aux mots de passe"
+      url: https://cyber.gouv.fr/publications/recommandations-relatives-lauthentification-multifacteur-et-aux-mots-de-passe
+  remediation: |
+    net accounts /minpwlen:{{.want}}
+  text:
+    fr:
+      title: Mots de passe sans expiration et sans longueur compensatoire
+      summary: >-
+        Les mots de passe n'expirent jamais, sans que leur longueur minimale soit assez
+        élevée pour compenser. Un mot de passe divulgué reste alors valable indéfiniment.
+      detail: >-
+        Durée de vie maximale illimitée et longueur minimale inférieure à 14 caractères.
+        L'expiration régulière n'est plus recommandée si les mots de passe sont longs : on
+        préfère augmenter la longueur.
+      gpo: Configuration ordinateur > Stratégies > Paramètres Windows > Paramètres de sécurité > Stratégies de comptes > Stratégie de mot de passe
+    en:
+      title: Passwords never expire and are not long enough to compensate
+      summary: >-
+        Passwords never expire, and their minimum length is not high enough to make up for
+        it. A leaked password then remains valid indefinitely.
+      detail: >-
+        Unlimited maximum password age and minimum length below 14 characters. Regular
+        expiration is no longer recommended when passwords are long: increasing the length
+        is preferred.
+      gpo: Computer Configuration > Policies > Windows Settings > Security Settings > Account Policies > Password Policy
+
+- id: ACC-004
+  category: accounts
+  level: warning
+  refs:
+    - name: "MITRE ATT&CK T1110 — Brute Force"
+      url: https://attack.mitre.org/techniques/T1110/
+  remediation: |
+    $inf = Join-Path $env:TEMP 'aplomb-sec.inf'
+    secedit /export /cfg $inf /areas SECURITYPOLICY
+    (Get-Content $inf) -replace '^PasswordComplexity\s*=\s*0', 'PasswordComplexity = 1' | Set-Content $inf
+    secedit /configure /db (Join-Path $env:TEMP 'aplomb-sec.sdb') /cfg $inf /areas SECURITYPOLICY
+    Remove-Item $inf
+  text:
+    fr:
+      title: Complexité des mots de passe désactivée
+      summary: >-
+        Les mots de passe ne sont pas tenus de mélanger majuscules, minuscules, chiffres ou
+        symboles, alors qu'ils sont courts : « motdepasse » serait accepté.
+      detail: >-
+        SamQueryInformationDomain : DOMAIN_PASSWORD_COMPLEX absent de PasswordProperties,
+        avec une longueur minimale inférieure à 14 caractères (une longueur de 14 et plus
+        est considérée comme compensatoire).
+      impact: S'applique aux prochains changements de mot de passe.
+      gpo: Configuration ordinateur > Stratégies > Paramètres Windows > Paramètres de sécurité > Stratégies de comptes > Stratégie de mot de passe > Le mot de passe doit respecter des exigences de complexité
+    en:
+      title: Password complexity disabled
+      summary: >-
+        Passwords are not required to mix upper case, lower case, digits or symbols, while
+        they are short: "password" would be accepted.
+      detail: >-
+        SamQueryInformationDomain: DOMAIN_PASSWORD_COMPLEX missing from PasswordProperties,
+        with a minimum length below 14 characters (a length of 14 or more is considered
+        compensating).
+      impact: Applies at the next password changes.
+      gpo: Computer Configuration > Policies > Windows Settings > Security Settings > Account Policies > Password Policy > Password must meet complexity requirements
+
+- id: ACC-005
+  category: accounts
+  level: critical
+  refs:
+    - name: "MITRE ATT&CK T1078.001 — Default Accounts"
+      url: https://attack.mitre.org/techniques/T1078/001/
+  remediation: |
+    {{if eq .role "dc"}}Get-ADUser -Filter * | Where-Object { $_.SID.Value -like '*-501' } | Disable-ADAccount{{else}}Get-LocalUser | Where-Object { $_.SID.Value -like '*-501' } | Disable-LocalUser{{end}}
+  text:
+    fr:
+      title: Compte Invité activé
+      summary: >-
+        Le compte Invité est activé : n'importe qui peut ouvrir une session ou accéder aux
+        partages sans mot de passe personnel.
+      detail: Compte de RID 501 sans l'indicateur UF_ACCOUNTDISABLE.
+      gpo: >-
+        Configuration ordinateur > Stratégies > Paramètres Windows > Paramètres de sécurité > Stratégies locales > Options de sécurité > Comptes : état du compte Invité
+    en:
+      title: Guest account enabled
+      summary: >-
+        The Guest account is enabled: anyone can log on or access shares without a
+        personal password.
+      detail: Account with RID 501 without the UF_ACCOUNTDISABLE flag.
+      gpo: Computer Configuration > Policies > Windows Settings > Security Settings > Local Policies > Security Options > Accounts — Guest account status
+
+- id: ACC-006
+  category: accounts
+  level: warning
+  profiles: [workstation, server]
+  refs:
+    - name: "MITRE ATT&CK T1078.003 — Local Accounts"
+      url: https://attack.mitre.org/techniques/T1078/003/
+    - name: "Microsoft — Windows LAPS"
+      url: https://learn.microsoft.com/windows-server/identity/laps/laps-overview
+  remediation: |
+    Get-LocalUser | Where-Object { $_.SID.Value -like '*-500' } | Disable-LocalUser
+  text:
+    fr:
+      title: Compte Administrateur intégré activé
+      summary: >-
+        Le compte « Administrateur » intégré est activé. Son nom est connu de tous et il
+        n'est jamais verrouillé : c'est la première cible des attaques par mot de passe.
+      detail: Compte local de RID 500 activé.
+      impact: >-
+        Vérifier qu'un autre compte administrateur nominatif existe et fonctionne avant de
+        le désactiver. Si ce compte est géré par LAPS, il peut rester actif.
+      gpo: >-
+        Configuration ordinateur > Stratégies > Paramètres Windows > Paramètres de sécurité > Stratégies locales > Options de sécurité > Comptes : état du compte Administrateur
+    en:
+      title: Built-in Administrator account enabled
+      summary: >-
+        The built-in "Administrator" account is enabled. Its name is well known and it is
+        never locked out: it is the first target of password attacks.
+      detail: Local account with RID 500 enabled.
+      impact: >-
+        Check that another named administrator account exists and works before disabling
+        it. If this account is managed by LAPS, it can stay enabled.
+      gpo: Computer Configuration > Policies > Windows Settings > Security Settings > Local Policies > Security Options > Accounts — Administrator account status
+
+- id: ACC-007
+  category: accounts
+  level: warning
+  refs:
+    - name: "MITRE ATT&CK T1098 — Account Manipulation"
+      url: https://attack.mitre.org/techniques/T1098/
+  remediation: |
+    Remove-LocalGroupMember -SID S-1-5-32-544 -Member {{ps .member}}
+  text:
+    fr:
+      title: Trop de membres dans le groupe Administrateurs
+      summary: >-
+        {count} comptes ou groupes (en plus des comptes intégrés) ont les droits
+        d'administration sur cette machine. Chacun d'eux peut tout y faire : il faut limiter
+        cette liste au strict nécessaire.
+      detail: >-
+        Membres de S-1-5-32-544, hors Administrateur intégré (RID 500), Admins du domaine
+        (RID 512), Administrateurs de l'entreprise (RID 519) et rôles d'administration Entra
+        ID. Seuil : plus de {max}.
+      impact: Vérifier avec le client qui a réellement besoin des droits d'administration avant de retirer un membre.
+    en:
+      title: Too many members in the Administrators group
+      summary: >-
+        {count} accounts or groups (besides the built-in ones) have administrator rights on
+        this machine. Each of them can do anything here: this list must be limited to the
+        bare minimum.
+      detail: >-
+        Members of S-1-5-32-544, excluding the built-in Administrator (RID 500), Domain
+        Admins (RID 512), Enterprise Admins (RID 519) and Entra ID admin roles. Threshold:
+        more than {max}.
+      impact: Check with the client who really needs administrator rights before removing a member.
+
+- id: ACC-008
+  category: accounts
+  level: warning
+  profiles: [workstation, server]
+  refs:
+    - name: "MITRE ATT&CK T1078.003 — Local Accounts"
+      url: https://attack.mitre.org/techniques/T1078/003/
+  remediation: |
+    net user {{ps .user}} /passwordreq:yes
+  text:
+    fr:
+      title: Compte local autorisé sans mot de passe
+      summary: >-
+        Des comptes locaux actifs ont le droit de ne pas avoir de mot de passe. Un compte
+        sans mot de passe est accessible à quiconque connaît son nom.
+      detail: Indicateur UF_PASSWD_NOTREQD sur un compte local activé.
+      impact: Le compte devra recevoir un mot de passe avant sa prochaine utilisation.
+    en:
+      title: Local account allowed without a password
+      summary: >-
+        Enabled local accounts are allowed to have no password. An account without a
+        password is accessible to anyone who knows its name.
+      detail: UF_PASSWD_NOTREQD flag on an enabled local account.
+      impact: The account will need a password before it is next used.
+
+- id: ACC-009
+  category: accounts
+  level: warning
+  profiles: [workstation, server]
+  refs:
+    - name: "MITRE ATT&CK T1078.003 — Local Accounts"
+      url: https://attack.mitre.org/techniques/T1078/003/
+  remediation: |
+    Set-LocalUser -Name {{ps .user}} -PasswordNeverExpires $false
+  text:
+    fr:
+      title: Compte local dont le mot de passe n'expire jamais
+      summary: >-
+        La politique impose de changer les mots de passe, mais des comptes locaux actifs en
+        sont dispensés : leur mot de passe peut rester le même pendant des années.
+      detail: >-
+        Indicateur UF_DONT_EXPIRE_PASSWD sur un compte local activé, alors que la politique
+        fixe une durée de vie maximale et une longueur minimale inférieure à 14 caractères.
+      impact: L'utilisateur devra changer son mot de passe à l'échéance suivante ; ne pas appliquer aux comptes de service sans prévoir leur rotation.
+    en:
+      title: Local account whose password never expires
+      summary: >-
+        The policy requires passwords to be changed, but enabled local accounts are exempt:
+        their password can stay the same for years.
+      detail: >-
+        UF_DONT_EXPIRE_PASSWD flag on an enabled local account, while the policy sets a
+        maximum password age and a minimum length below 14 characters.
+      impact: The user will have to change their password at the next deadline; do not apply to service accounts without planning their rotation.
+
+- id: ACC-010
+  category: accounts
+  level: warning
+  profiles: [workstation, server]
+  refs:
+    - name: "Microsoft — Windows LAPS"
+      url: https://learn.microsoft.com/windows-server/identity/laps/laps-overview
+    - name: "MITRE ATT&CK T1550.002 — Pass the Hash"
+      url: https://attack.mitre.org/techniques/T1550/002/
+  remediation: |
+    {{if .ou}}Update-LapsADSchema
+    Set-LapsADComputerSelfPermission -Identity {{ps .ou}}
+    {{end}}Invoke-LapsPolicyProcessing
+    Get-LapsDiagnostics
+  text:
+    fr:
+      title: Mot de passe administrateur local non géré (LAPS absent)
+      summary: >-
+        Le mot de passe du compte administrateur local n'est pas géré par LAPS. Il est
+        probablement identique sur plusieurs machines : en voler un donne accès à toutes.
+      detail: >-
+        Ni Windows LAPS (BackupDirectory ≠ 0 dans la stratégie ou la configuration locale),
+        ni l'ancienne LAPS (AdmPwdEnabled = 1 et extension installée) sur une machine jointe
+        à un domaine ou à Entra ID.
+      impact: >-
+        Windows LAPS se configure par GPO (Active Directory) ou Intune (Entra ID) ;
+        Update-LapsADSchema modifie le schéma AD et se lance une seule fois par forêt.
+      gpo: Configuration ordinateur > Stratégies > Modèles d'administration > Système > LAPS > Configurer le répertoire de sauvegarde des mots de passe
+    en:
+      title: Local administrator password not managed (no LAPS)
+      summary: >-
+        The local administrator password is not managed by LAPS. It is probably the same on
+        several machines: stealing one gives access to all of them.
+      detail: >-
+        Neither Windows LAPS (BackupDirectory ≠ 0 in policy or local configuration) nor
+        legacy LAPS (AdmPwdEnabled = 1 and extension installed) on a machine joined to a
+        domain or Entra ID.
+      impact: >-
+        Windows LAPS is configured through GPO (Active Directory) or Intune (Entra ID);
+        Update-LapsADSchema changes the AD schema and is run once per forest.
+      gpo: Computer Configuration > Policies > Administrative Templates > System > LAPS > Configure password backup directory
