@@ -128,7 +128,13 @@ func hiddenOrAnonymous(c *rules.Ctx) rules.Outcome {
 	}
 	var fs []rules.Finding
 	for _, t := range ts.List {
-		if microsoft(t) || (!t.Hidden && strings.TrimSpace(t.Author) != "") {
+		if microsoft(t) {
+			continue
+		}
+		// Une tâche sans auteur dont le programme est dans Program Files ou
+		// Windows est courante (Edge, pilotes…) : seules les masquées comptent alors.
+		anonymous := strings.TrimSpace(t.Author) == "" && !trustedLocation(t)
+		if !t.Hidden && !anonymous {
 			continue
 		}
 		cmd := ""
@@ -149,6 +155,9 @@ func orphan(c *rules.Ctx) rules.Outcome {
 	}
 	var fs []rules.Finding
 	for _, t := range ts.List {
+		if microsoft(t) {
+			continue // tâche intégrée à Windows : sans action possible pour le technicien
+		}
 		for _, a := range t.Actions {
 			if !a.Exists && a.Path != "" {
 				fs = append(fs, rules.Finding{Object: t.Path,
@@ -159,6 +168,20 @@ func orphan(c *rules.Ctx) rules.Outcome {
 		}
 	}
 	return done(ts, fs)
+}
+
+// trustedLocation : toutes les actions sont sous Program Files ou Windows.
+func trustedLocation(t model.Task) bool {
+	if len(t.Actions) == 0 {
+		return false
+	}
+	for _, a := range t.Actions {
+		low := strings.ToLower(a.Resolved)
+		if !strings.Contains(low, `:\program files\`) && !strings.Contains(low, `:\program files (x86)\`) && !strings.Contains(low, `:\windows\`) {
+			return false
+		}
+	}
+	return true
 }
 
 func runAs(t model.Task) string {

@@ -61,7 +61,7 @@ func Collect(h model.Host) *model.Firewall {
 			prof, _ := r.Int("Profiles")
 			proto, _ := r.Int("Protocol")
 			fr := model.FWRule{Name: r.Str("Name"), Grouping: r.Str("Grouping"), Profiles: Profiles(prof), Protocol: int(proto),
-				LocalPorts: r.Str("LocalPorts"), Remote: r.Str("RemoteAddresses"), Application: r.Str("ApplicationName"), Service: r.Str("ServiceName")}
+				LocalPorts: r.Str("LocalPorts"), Remote: r.Str("RemoteAddresses"), Application: r.Str("ApplicationName"), Service: r.Str("ServiceName"), AppPackage: r.Str("LocalAppPackageId")}
 			if app := win.ExpandEnv(fr.Application); app != "" && strings.Contains(app, `\`) {
 				a := win.CheckACL(services.Dir(app), win.KindDirReplace)
 				if !a.Writable() {

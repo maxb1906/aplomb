@@ -93,7 +93,7 @@ func anyAny(c *rules.Ctx) rules.Outcome {
 	}
 	var fs []rules.Finding
 	for _, r := range f.Rules {
-		if !tcpOrUDP(r.Protocol) || !AnyPort(r.LocalPorts) || !AnyAddress(r.Remote) || r.Application != "" || r.Service != "" {
+		if !tcpOrUDP(r.Protocol) || !AnyPort(r.LocalPorts) || !AnyAddress(r.Remote) || r.Application != "" || r.Service != "" || storeApp(r) {
 			continue
 		}
 		fs = append(fs, rules.Finding{Object: r.Name, Evidence: ruleEv(r), Params: map[string]string{"rule": r.Name}})
@@ -102,6 +102,12 @@ func anyAny(c *rules.Ctx) rules.Outcome {
 		return rules.Passed(map[string]string{"inbound_allow_rules": strconv.Itoa(len(f.Rules))})
 	}
 	return rules.Failed(fs...)
+}
+
+// storeApp : règle d'une application du Store, limitée à son package (son nom
+// est une ressource « @{Package?ms-resource://…} »).
+func storeApp(r model.FWRule) bool {
+	return r.AppPackage != "" || strings.HasPrefix(r.Name, "@{")
 }
 
 func sensitivePublic(c *rules.Ctx) rules.Outcome {

@@ -107,7 +107,11 @@ Step 'TSK-005 tâche orpheline' {
 Step 'ACC-001/ACC-002 politique de mots de passe faible' { & net.exe accounts /minpwlen:0 /lockoutthreshold:0 | Out-Null }
 Step 'ACC-005 compte Invité activé' { Get-LocalUser | Where-Object { $_.SID.Value -like '*-501' } | Enable-LocalUser }
 Step 'ACC-008 compte local sans mot de passe obligatoire' {
-    & net.exe user aplomblab 'Lab-Aplomb-2026!' /add /passwordreq:no | Out-Null
+    $pw = ConvertTo-SecureString 'Lab-Aplomb-2026!' -AsPlainText -Force
+    New-LocalUser -Name 'aplomblab' -Password $pw -Description 'Aplomb lab' | Out-Null
+    $u = [ADSI]'WinNT://./aplomblab,user'
+    $u.UserFlags.Value = $u.UserFlags.Value -bor 0x20   # UF_PASSWD_NOTREQD
+    $u.SetInfo()
 }
 
 # --- SMB -------------------------------------------------------------------

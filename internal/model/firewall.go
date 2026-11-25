@@ -29,7 +29,9 @@ type FWRule struct {
 	Remote      string   `json:"remote,omitempty"`
 	Application string   `json:"application,omitempty"`
 	Service     string   `json:"service,omitempty"`
-	App         *PathACL `json:"app,omitempty"` // droits sur le dossier du programme
+	// AppPackage : SID du package d'une application du Store (règle limitée à cette application).
+	AppPackage string   `json:"app_package,omitempty"`
+	App        *PathACL `json:"app,omitempty"` // droits sur le dossier du programme
 }
 
 // HasProfile indique si la règle s'applique au profil.

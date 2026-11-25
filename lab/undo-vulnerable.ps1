@@ -29,7 +29,7 @@ Step 'fichiers' { Remove-Item -Recurse -Force 'C:\AplombLab', 'C:\Aplomb Lab' -E
 Step 'comptes' {
     & net.exe accounts /minpwlen:14 /lockoutthreshold:10 /lockoutwindow:15 /lockoutduration:15 | Out-Null
     Get-LocalUser | Where-Object { $_.SID.Value -like '*-501' } | Disable-LocalUser
-    & net.exe user aplomblab /delete | Out-Null
+    Remove-LocalUser -Name 'aplomblab' -ErrorAction SilentlyContinue
 }
 Step 'SMB' {
     Set-SmbServerConfiguration -RequireSecuritySignature $true -Force

@@ -165,6 +165,45 @@
             }
           }
         ]
+      },
+      {
+        "path": "\\MicrosoftEdgeUpdateTaskMachineCore",
+        "folder": "\\",
+        "name": "MicrosoftEdgeUpdateTaskMachineCore",
+        "enabled": true,
+        "hidden": false,
+        "author": "",
+        "user_id": "SYSTEM",
+        "principal_sid": "S-1-5-18",
+        "run_level": 0,
+        "privileged": true,
+        "actions": [
+          {
+            "path": "C:\\Program Files (x86)\\Microsoft\\EdgeUpdate\\MicrosoftEdgeUpdate.exe",
+            "args": "/c",
+            "resolved": "C:\\Program Files (x86)\\Microsoft\\EdgeUpdate\\MicrosoftEdgeUpdate.exe",
+            "exists": true
+          }
+        ]
+      },
+      {
+        "path": "\\Microsoft\\Windows\\UpdateOrchestrator\\USO_UxBroker",
+        "folder": "\\Microsoft\\Windows\\UpdateOrchestrator\\",
+        "name": "USO_UxBroker",
+        "enabled": true,
+        "hidden": false,
+        "author": "",
+        "user_id": "SYSTEM",
+        "principal_sid": "S-1-5-18",
+        "run_level": 0,
+        "privileged": true,
+        "actions": [
+          {
+            "path": "%systemroot%\\system32\\MusNotification.exe",
+            "resolved": "C:\\Windows\\system32\\MusNotification.exe",
+            "exists": false
+          }
+        ]
       }
     ],
     "partial": false
@@ -396,6 +435,16 @@
         "protocol": 58,
         "local_ports": "",
         "remote": "*"
+      },
+      {
+        "name": "@{Microsoft.WindowsFeedbackHub_1.0_x64__8wekyb3d8bbwe?ms-resource://Microsoft.WindowsFeedbackHub/Resources/AppStoreName}",
+        "profiles": [
+          "Domain",
+          "Private"
+        ],
+        "protocol": 256,
+        "remote": "*",
+        "app_package": "S-1-15-2-1"
       }
     ],
     "other_fw": []
