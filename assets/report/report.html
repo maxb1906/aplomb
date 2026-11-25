@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>{{t "report.title"}} — {{.R.Host.Name}}</title>
-<style>{{css}}</style>
+<style>{{css}}{{with .R.Meta.Issuer}}{{if .Color}}:root{--accent:{{.Color}}}{{end}}{{end}}</style>
 </head>
 <body>
 <div class="conf">{{t "report.confidential"}}</div>
@@ -18,7 +18,9 @@
       {{datetime .R.Meta.CollectedAt}}
       {{if .R.Meta.Technician}} · {{t "report.technician"}}{{t "common.colon"}}{{.R.Meta.Technician}}{{end}}
       {{if .R.Meta.Company}} · {{.R.Meta.Company}}{{end}}
+      {{with .R.Meta.Issuer}}{{if and .Name (ne .Name $.R.Meta.Technician)}} · {{.Name}}{{end}}{{end}}
     </div>
+    {{with .R.Meta.Issuer}}{{if .Contact}}<div class="who">{{.Contact}}</div>{{end}}{{end}}
     <div class="who">Aplomb {{.R.Meta.Version}} · {{t "report.readonly"}}</div>
   </div>
   <div class="gauge">
@@ -90,6 +92,7 @@
 </details>
 {{end}}{{end}}{{end}}
 
+{{with .R.Meta.Issuer}}{{if .Legal}}<p class="legal small muted">{{.Legal}}</p>{{end}}{{end}}
 <footer>{{t "report.footer" "version" .R.Meta.Version}} · {{t "report.confidential"}}</footer>
 </main>
 <script>

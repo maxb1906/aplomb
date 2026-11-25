@@ -52,7 +52,12 @@ aplomb-data/
 
 Sans droits administrateur, Aplomb fonctionne en **mode dégradé** : les contrôles impossibles (BitLocker, exclusions Defender, droits des partages, protection LSA…) sont marqués « non vérifiés », exclus du score, et le taux de couverture est indiqué.
 
-> **SmartScreen / antivirus** : l'exécutable n'est pas encore signé. Windows peut afficher « Windows a protégé votre ordinateur » : « Informations complémentaires » puis « Exécuter quand même ». Vérifiez l'empreinte avec le fichier `SHA256SUMS` de la release.
+> **Windows bloque l'exe** : l'exécutable n'est pas encore signé. Selon le PC :
+> - **SmartScreen** (« Windows a protégé votre ordinateur ») : « Informations complémentaires » puis « Exécuter quand même ».
+> - **Contrôle intelligent des applications** (Windows 11) : l'exe est bloqué **sans bouton pour passer outre** ni exception par application. La seule solution est de le désactiver (Sécurité Windows → *Contrôle des applications et du navigateur* → *Paramètres du Contrôle intelligent des applications* → *Désactivé*) ; depuis la mise à jour d'avril 2026 de Windows 11, on peut le réactiver ensuite sans réinstaller Windows. Sur la machine d'un client, ne le désactivez qu'avec son accord.
+> - Certains **antivirus** ou EDR peuvent signaler un outil qui inspecte la configuration de sécurité.
+>
+> Vérifiez l'empreinte avec le fichier `SHA256SUMS` de la release. La signature de code (SignPath Foundation, après celle d'Arpent) lèvera ces blocages.
 
 ## Score
 
@@ -67,7 +72,7 @@ Pour chaque problème, le rapport donne une commande PowerShell prête à copier
 ```
 aplomb                                    # audit et ouverture du rapport (par défaut)
 aplomb audit --out D:\rapports --format html,md,json,ps1 --report-lang en --profile serveur --no-open
-aplomb config --technician "Nom" --company "Ma société" --logo logo.png
+aplomb config --technician "Nom" --company "Ma société" --contact "contact@exemple.be" --color "#1f5f8b" --logo logo.png
 aplomb collect --out machine.json         # données brutes, sans évaluation
 aplomb evaluate --input machine.json      # rapport à partir de données enregistrées (aussi sous Linux/macOS)
 aplomb rules | host | version | help      # aplomb <commande> -h pour les options
@@ -77,13 +82,24 @@ Options globales : `--lang fr|en` et `--data <dossier>` (ou variable `APLOMB_DAT
 
 ## Configuration
 
-`aplomb-data/config.yaml` (créé au premier audit) : technicien, société et logo de la page de garde, langues de l'outil et du rapport, profil forcé, formats, et **règles désactivées** — leur défaut apparaît alors comme « risque accepté » avec la justification :
+`aplomb-data/config.yaml` (créé au premier audit) : technicien, émetteur du rapport (`issuer`, même forme que dans Arpent et Jalon), langues de l'outil et du rapport, profil forcé, formats, et **règles désactivées** — leur défaut apparaît alors comme « risque accepté » avec la justification :
 
 ```yaml
+technician: "Nom"
+report_lang: fr
+issuer:
+  name: "Nom"
+  company: "Ma société"
+  contact: "rue de l'Exemple 1, 4000 Liège · contact@exemple.be"
+  legal: "TVA BE0123.456.789"   # pied du rapport
+  color: "#1f5f8b"              # couleur principale du rapport
+  logo: logo.png                # relatif à aplomb-data/
 disabled_rules:
   - id: SMB-003
     reason: "Copieur ancien en SMBv1, remplacement prévu en 2027"
 ```
+
+Les clés `company` et `logo` placées à la racine (forme de la v1.0.0) restent lues et sont reportées dans `issuer`.
 
 ## Compilation et tests
 

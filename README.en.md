@@ -40,7 +40,12 @@ Each rule applies according to the machine **profile** (workstation, member serv
 
 Without administrator rights, Aplomb runs in **degraded mode**: checks it cannot perform (BitLocker, Defender exclusions, share permissions, LSA protection…) are marked "not checked", excluded from the score, and the coverage rate is shown.
 
-> **SmartScreen / antivirus**: the executable is not signed yet. Windows may show "Windows protected your PC": click "More info" then "Run anyway". Check the hash against the release's `SHA256SUMS` file.
+> **Windows blocks the executable**: it is not signed yet. Depending on the PC:
+> - **SmartScreen** ("Windows protected your PC"): click "More info" then "Run anyway".
+> - **Smart App Control** (Windows 11): the executable is blocked **with no button to bypass it** and no per-app exception. The only way is to turn it off (Windows Security → *App & browser control* → *Smart App Control settings* → *Off*); since the April 2026 Windows 11 update it can be turned back on afterwards without reinstalling Windows. On a customer's machine, only turn it off with their consent.
+> - Some **antivirus** or EDR products may flag a tool that inspects the security configuration.
+>
+> Check the hash against the release's `SHA256SUMS` file. Code signing (SignPath Foundation, after Arpent) will lift these blocks.
 
 ## Score
 
@@ -55,7 +60,7 @@ For each issue, the report gives a ready-to-copy PowerShell command and warns ab
 ```
 aplomb                                    # audit and open the report (default)
 aplomb audit --out D:\reports --format html,md,json,ps1 --report-lang en --profile server --no-open
-aplomb config --technician "Name" --company "My company" --logo logo.png
+aplomb config --technician "Name" --company "My company" --contact "contact@example.com" --color "#1f5f8b" --logo logo.png
 aplomb collect --out machine.json         # raw data, no evaluation
 aplomb evaluate --input machine.json      # report from saved data (also on Linux/macOS)
 aplomb rules | host | version | help      # aplomb <command> -h for options
@@ -65,13 +70,24 @@ Global options: `--lang fr|en` and `--data <folder>` (or the `APLOMB_DATA` varia
 
 ## Configuration
 
-`aplomb-data/config.yaml` (created at the first audit): technician, company and logo for the cover page, tool and report languages, forced profile, formats, and **disabled rules** — their failure then shows as "accepted risk" with the justification:
+`aplomb-data/config.yaml` (created at the first audit): technician, report issuer (`issuer`, same shape as in Arpent and Jalon), tool and report languages, forced profile, formats, and **disabled rules** — their failure then shows as "accepted risk" with the justification:
 
 ```yaml
+technician: "Name"
+report_lang: en
+issuer:
+  name: "Name"
+  company: "My company"
+  contact: "1 Example Street, 4000 Liège · contact@example.com"
+  legal: "VAT BE0123.456.789"   # report footer
+  color: "#1f5f8b"              # main report colour
+  logo: logo.png                # relative to aplomb-data/
 disabled_rules:
   - id: SMB-003
     reason: "Old SMBv1 copier, replacement planned for 2027"
 ```
+
+The root-level `company` and `logo` keys (v1.0.0 format) are still read and moved into `issuer`.
 
 ## Building and testing
 

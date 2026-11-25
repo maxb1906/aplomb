@@ -1,11 +1,24 @@
-:root{--ink:#1d2433;--muted:#5d6678;--line:#dfe3ea;--bg:#f6f7f9;--card:#fff;--crit:#b42318;--crit-bg:#fef3f2;--warn:#b54708;--warn-bg:#fffaeb;--info:#175cd3;--info-bg:#eff8ff;--ok:#067647;--ok-bg:#ecfdf3;--na:#667085;--na-bg:#f2f4f7}
+/* Palette commune Arpent · Aplomb · Jalon : bloc à garder identique dans les trois dépôts (assets/report/report.css). */
+:root {
+  --accent: #1f5f8b;
+  --fg: #1b2530; --muted: #5d6b78; --line: #d5dce3; --bg: #f6f7f9; --card: #fff;
+  --bad: #b42318; --bad-bg: #fde8e6;
+  --warn: #a86200; --warn-bg: #fdf0dc;
+  --info: #2a6db0; --info-bg: #e8f1fb;
+  --ok: #1e7a46; --ok-bg: #e3f4ea;
+  --na: #667085; --na-bg: #f2f4f7;
+  --font: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  --mono: Consolas, "Cascadia Mono", ui-monospace, Menlo, monospace;
+}
+/* Fin de la palette commune. */
+:root{--ink:var(--fg);--crit:var(--bad);--crit-bg:var(--bad-bg)}
 *{box-sizing:border-box}
-body{margin:0;font:15px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+body{margin:0;font:15px/1.5 var(--font);color:var(--ink);background:var(--bg)}
 main{max-width:1000px;margin:0 auto;padding:24px}
-h1{font-size:26px;margin:0 0 4px}h2{font-size:20px;margin:32px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line)}h3{font-size:16px;margin:0}
+h1{font-size:26px;margin:0 0 4px}h2{font-size:20px;margin:32px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--accent)}h3{font-size:16px;margin:0}
 a{color:var(--info)}
-.conf{background:#1d2433;color:#fff;text-align:center;font-size:12px;letter-spacing:.04em;padding:6px}
-.cover{display:flex;gap:24px;align-items:flex-start;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:24px}
+.conf{background:var(--fg);color:#fff;text-align:center;font-size:12px;letter-spacing:.04em;padding:6px}
+.cover{display:flex;gap:24px;align-items:flex-start;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:24px}
 .cover .who{color:var(--muted);font-size:14px}
 .cover img{max-height:64px;max-width:200px;margin-bottom:12px}
 .gauge{flex:none;text-align:center}
@@ -41,3 +54,4 @@ details>summary{cursor:pointer;color:var(--muted)}
 .list td:first-child{width:90px}
 footer{margin:40px 0 10px;color:var(--muted);font-size:12px;text-align:center}
 @media print{body{background:#fff}main{padding:0}.cmd button{display:none}.card,.cat,.cover{border-color:#ccc}details{display:block}details>summary{display:none}h2{break-after:avoid}.conf{background:#fff;color:#000;border-bottom:1px solid #000}}
+.legal{text-align:center;margin:24px 0 0;white-space:pre-line}
