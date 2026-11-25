@@ -1,7 +1,5 @@
-// Commande aplomb : point d'entrée de la ligne de commande.
-//
-// Étape 0 : seules les commandes hello, version et help existent. Sans
-// argument, aplomb lancera l'audit (étape 3) ; en attendant, il affiche hello.
+// Commande aplomb : audit en lecture seule de la configuration de sécurité
+// d'une machine Windows. Sans argument, lance l'audit et ouvre le rapport.
 package main
 
 import (
@@ -16,6 +14,7 @@ import (
 	"strings"
 
 	_ "github.com/maxb1906/aplomb/internal/checks/all" // enregistre les contrôles
+	"github.com/maxb1906/aplomb/internal/config"
 	"github.com/maxb1906/aplomb/internal/i18n"
 )
 
@@ -24,11 +23,14 @@ var version = "dev"
 
 // env regroupe ce dont une commande a besoin.
 type env struct {
-	ctx    context.Context
-	bundle *i18n.Bundle
-	tr     *i18n.Translator
-	stdout io.Writer
-	stderr io.Writer
+	ctx       context.Context
+	bundle    *i18n.Bundle
+	tr        *i18n.Translator
+	data      string // --data
+	cfg       *config.Config
+	cfgLoaded bool
+	stdout    io.Writer
+	stderr    io.Writer
 }
 
 func (e *env) T(key string, pairs ...string) string { return e.tr.T(key, pairs...) }
@@ -39,6 +41,35 @@ func (e *env) fail(err error) int {
 	return 1
 }
 
+// newFlags crée le jeu d'options d'une commande ; l'aide est rendue par commandHelp.
+func (e *env) newFlags(name string) *flag.FlagSet {
+	fs := flag.NewFlagSet(name, flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	return fs
+}
+
+// parse analyse les options ; renvoie (code, false) si la commande doit s'arrêter.
+func (e *env) parse(fs *flag.FlagSet, args []string) (int, bool) {
+	err := fs.Parse(args)
+	if err == nil {
+		return 0, true
+	}
+	if err == flag.ErrHelp {
+		e.commandHelp(fs, e.stdout)
+		return 0, false
+	}
+	fmt.Fprintln(e.stderr, e.T("cli.error", "error", err.Error()))
+	e.commandHelp(fs, e.stderr)
+	return 2, false
+}
+
+func (e *env) commandHelp(fs *flag.FlagSet, w io.Writer) {
+	fmt.Fprintln(w, e.T("cli.cmd_usage", "command", fs.Name()))
+	fs.VisitAll(func(f *flag.Flag) {
+		fmt.Fprintf(w, "  --%-13s %s\n", f.Name, e.T("flag."+fs.Name()+"."+f.Name))
+	})
+}
+
 type command struct {
 	run func(e *env, args []string) int
 }
@@ -46,15 +77,18 @@ type command struct {
 var commands = map[string]command{}
 
 // order fixe l'ordre d'affichage des commandes dans l'aide.
-var order = []string{"host", "rules", "hello", "version", "help"}
+var order = []string{"audit", "collect", "evaluate", "host", "rules", "hello", "version", "help"}
 
 // defaultCommand est lancée sans argument (double-clic sur l'exe).
-const defaultCommand = "hello"
+const defaultCommand = "audit"
 
 func init() {
-	commands["hello"] = command{run: cmdHello}
+	commands["audit"] = command{run: cmdAudit}
+	commands["collect"] = command{run: cmdCollect}
+	commands["evaluate"] = command{run: cmdEvaluate}
 	commands["host"] = command{run: cmdHost}
 	commands["rules"] = command{run: cmdRules}
+	commands["hello"] = command{run: cmdHello}
 	commands["version"] = command{run: func(e *env, _ []string) int { fmt.Fprintln(e.stdout, version); return 0 }}
 	commands["help"] = command{run: func(e *env, _ []string) int { usage(e, e.stdout); return 0 }}
 }
@@ -65,6 +99,7 @@ func usage(e *env, w io.Writer) {
 	for _, c := range order {
 		fmt.Fprintf(w, "  %-12s %s\n", c, e.T("cmd."+c))
 	}
+	fmt.Fprintln(w, e.T("cli.global"))
 }
 
 func main() {
@@ -110,20 +145,33 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
-	e := &env{ctx: ctx, bundle: bundle, stdout: stdout, stderr: stderr}
+	e := &env{ctx: ctx, bundle: bundle, stdout: stdout, stderr: stderr, cfg: &config.Config{}}
 	e.tr = bundle.Translator(bundle.Detect())
 
 	fs := flag.NewFlagSet("aplomb", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 	lang := fs.String("lang", "", "fr|en")
+	data := fs.String("data", "", "")
 	parseErr := fs.Parse(args)
+	e.data = *data
 
-	if *lang != "" {
+	name, rest := defaultCommand, []string(nil)
+	if parseErr == nil && fs.NArg() > 0 {
+		name, rest = fs.Arg(0), fs.Args()[1:]
+	}
+	// La configuration n'est lue (et créée) que pour les commandes qui produisent un rapport.
+	if name == "audit" || name == "evaluate" {
+		e.loadConfig()
+	}
+	switch {
+	case *lang != "":
 		if !bundle.Has(*lang) {
 			fmt.Fprintln(stderr, e.T("cli.unknown_lang", "lang", *lang, "available", strings.Join(bundle.Languages(), ", ")))
 			return 2
 		}
 		e.tr = bundle.Translator(*lang)
+	case os.Getenv("APLOMB_LANG") == "" && bundle.Has(e.cfg.Lang):
+		e.tr = bundle.Translator(e.cfg.Lang)
 	}
 
 	if parseErr == flag.ErrHelp {
@@ -134,11 +182,6 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, e.T("cli.error", "error", parseErr.Error()))
 		usage(e, stderr)
 		return 2
-	}
-
-	name, rest := defaultCommand, []string(nil)
-	if fs.NArg() > 0 {
-		name, rest = fs.Arg(0), fs.Args()[1:]
 	}
 	c, ok := commands[name]
 	if !ok {

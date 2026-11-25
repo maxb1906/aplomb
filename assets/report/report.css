@@ -1,0 +1,43 @@
+:root{--ink:#1d2433;--muted:#5d6678;--line:#dfe3ea;--bg:#f6f7f9;--card:#fff;--crit:#b42318;--crit-bg:#fef3f2;--warn:#b54708;--warn-bg:#fffaeb;--info:#175cd3;--info-bg:#eff8ff;--ok:#067647;--ok-bg:#ecfdf3;--na:#667085;--na-bg:#f2f4f7}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+main{max-width:1000px;margin:0 auto;padding:24px}
+h1{font-size:26px;margin:0 0 4px}h2{font-size:20px;margin:32px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line)}h3{font-size:16px;margin:0}
+a{color:var(--info)}
+.conf{background:#1d2433;color:#fff;text-align:center;font-size:12px;letter-spacing:.04em;padding:6px}
+.cover{display:flex;gap:24px;align-items:flex-start;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:24px}
+.cover .who{color:var(--muted);font-size:14px}
+.cover img{max-height:64px;max-width:200px;margin-bottom:12px}
+.gauge{flex:none;text-align:center}
+.gauge .grade{font-size:15px;font-weight:600;margin-top:4px}
+.grade-A{color:#067647}.grade-B{color:#4e8a1e}.grade-C{color:#b54708}.grade-D{color:#c4320a}.grade-E{color:#b42318}.grade--{color:var(--na)}
+.stroke-A{stroke:#12b76a}.stroke-B{stroke:#66c61c}.stroke-C{stroke:#f79009}.stroke-D{stroke:#ef6820}.stroke-E{stroke:#f04438}
+table{border-collapse:collapse;width:100%}
+td,th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{width:34%;color:var(--muted);font-weight:500}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0;break-inside:avoid}
+.card.critical{border-left:5px solid var(--crit)}.card.warning{border-left:5px solid var(--warn)}.card.info{border-left:5px solid var(--info)}
+.head{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.id{font:12px ui-monospace,Consolas,monospace;color:var(--muted)}
+.badge{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.b-critical{color:var(--crit);background:var(--crit-bg)}.b-warning{color:var(--warn);background:var(--warn-bg)}.b-info{color:var(--info);background:var(--info-bg)}
+.b-pass{color:var(--ok);background:var(--ok-bg)}.b-fail{color:var(--crit);background:var(--crit-bg)}.b-not_checked,.b-not_applicable{color:var(--na);background:var(--na-bg)}.b-accepted_risk{color:var(--warn);background:var(--warn-bg)}
+.b-gpo{color:#6941c6;background:#f4f3ff}
+.muted{color:var(--muted)}.small{font-size:13px}
+.objects{margin:10px 0 0;padding:0;list-style:none}
+.objects>li{border-top:1px dashed var(--line);padding:8px 0}
+.ev{font:12px ui-monospace,Consolas,monospace;color:var(--muted);word-break:break-all}
+.cmd{position:relative;margin:8px 0 0}
+.cmd pre{margin:0;background:#101828;color:#e4e7ec;border-radius:8px;padding:10px 12px;padding-right:80px;overflow-x:auto;font:12.5px/1.45 ui-monospace,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
+.cmd button{position:absolute;top:6px;right:6px;font:12px inherit;border:0;border-radius:6px;padding:3px 9px;background:#344054;color:#fff;cursor:pointer}
+.cmd button:hover{background:#475467}
+.impact{background:var(--warn-bg);color:#7a2e0e;border-radius:6px;padding:6px 10px;margin:8px 0 0;font-size:13px}
+.gpo{background:#f4f3ff;color:#42307d;border-radius:6px;padding:6px 10px;margin:8px 0 0;font-size:13px}
+.cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.cat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.cat .n{font-size:24px;font-weight:700}
+.summary li{margin:4px 0}
+details>summary{cursor:pointer;color:var(--muted)}
+.list td:first-child{width:90px}
+footer{margin:40px 0 10px;color:var(--muted);font-size:12px;text-align:center}
+@media print{body{background:#fff}main{padding:0}.cmd button{display:none}.card,.cat,.cover{border-color:#ccc}details{display:block}details>summary{display:none}h2{break-after:avoid}.conf{background:#fff;color:#000;border-bottom:1px solid #000}}

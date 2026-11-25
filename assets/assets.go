@@ -13,3 +13,8 @@ var I18n embed.FS
 //
 //go:embed rules.yaml
 var Rules []byte
+
+// Report contient les modèles du rapport (report/report.html, .md, .css).
+//
+//go:embed report
+var Report embed.FS

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="{{.Lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>{{t "report.title"}} — {{.R.Host.Name}}</title>
+<style>{{css}}</style>
+</head>
+<body>
+<div class="conf">{{t "report.confidential"}}</div>
+<main>
+<section class="cover">
+  <div>
+    {{if .Logo}}<img src="{{safeURL .Logo}}" alt="">{{end}}
+    <h1>{{t "report.title"}} — {{.R.Host.Name}}</h1>
+    <div class="who">
+      {{datetime .R.Meta.CollectedAt}}
+      {{if .R.Meta.Technician}} · {{t "report.technician"}} : {{.R.Meta.Technician}}{{end}}
+      {{if .R.Meta.Company}} · {{.R.Meta.Company}}{{end}}
+    </div>
+    <div class="who">Aplomb {{.R.Meta.Version}} · {{t "report.readonly"}}</div>
+  </div>
+  <div class="gauge">
+    <svg width="132" height="132" viewBox="0 0 132 132" role="img" aria-label="{{t "report.score"}}">
+      <circle cx="66" cy="66" r="52" fill="none" stroke="#eaecf0" stroke-width="14"/>
+      {{if .HasScore}}<circle cx="66" cy="66" r="52" fill="none" class="stroke-{{.R.Score.Grade}}" stroke-width="14" stroke-linecap="round" stroke-dasharray="{{.ScoreDash}} 326.7" transform="rotate(-90 66 66)"/>{{end}}
+      <text x="66" y="64" text-anchor="middle" font-size="30" font-weight="700" fill="#1d2433">{{if .HasScore}}{{.R.Score.Score}}{{else}}—{{end}}</text>
+      <text x="66" y="86" text-anchor="middle" font-size="13" fill="#5d6678">/ 100</text>
+    </svg>
+    <div class="grade grade-{{.R.Score.Grade}}">{{t "report.grade"}} {{.R.Score.Grade}}</div>
+    <div class="small muted">{{t "report.coverage" "coverage" .R.Score.Coverage}}</div>
+  </div>
+</section>
+
+<h2>{{t "report.summary"}}</h2>
+<ul class="summary">{{range .Summary}}<li>{{.}}</li>{{end}}</ul>
+<div class="cats">
+{{range .Categories}}<div class="cat">
+  <div class="small muted">{{.Label}}</div>
+  <div class="n grade-{{.Grade}}">{{if ge .Score 0}}{{.Score}}<span class="small muted"> / 100</span>{{else}}—{{end}}</div>
+  <div class="small muted">{{t "report.cat_counts" "pass" .Pass "fail" .Failed}}</div>
+</div>{{end}}
+</div>
+
+<h2>{{t "report.machine"}}</h2>
+<div class="card"><table>{{range .HostRows}}<tr><th>{{.K}}</th><td>{{.V}}</td></tr>{{end}}</table></div>
+
+<h2>{{t "report.issues"}} ({{len .Issues}})</h2>
+{{if not .Issues}}<p>{{t "report.no_issue"}}</p>{{end}}
+{{range .Issues}}{{template "issue" .}}{{end}}
+
+{{if .Accepted}}
+<h2>{{t "report.accepted"}} ({{len .Accepted}})</h2>
+{{range .Accepted}}<div class="card">
+  <div class="head"><span class="badge b-accepted_risk">{{.StatusLabel}}</span><h3>{{.Title}}</h3><span class="id">{{.ID}}</span></div>
+  <p class="small"><strong>{{t "report.justification"}} :</strong> {{.Accepted}}</p>
+  {{if .Findings}}<ul class="objects">{{range .Findings}}{{if .Object}}<li class="small">{{.Object}}</li>{{end}}{{end}}</ul>{{end}}
+</div>{{end}}
+{{end}}
+
+{{if .NotChecked}}
+<h2>{{t "report.not_checked"}} ({{len .NotChecked}})</h2>
+<p class="small muted">{{t "report.not_checked_help"}}</p>
+<div class="card"><table class="list">
+{{range .NotChecked}}<tr><td class="id">{{.ID}}</td><td>{{.Title}}<div class="small muted">{{.Reason}}{{if .Admin}} · {{t "report.needs_admin"}}{{end}}</div></td></tr>{{end}}
+</table></div>
+{{end}}
+
+<h2>{{t "report.details"}}</h2>
+{{range .Categories}}
+<div class="card">
+  <h3>{{.Label}}</h3>
+  <table class="list">
+  {{range .Items}}<tr>
+    <td class="id">{{.ID}}</td>
+    <td>{{.Title}}{{if .Note}}<div class="small muted">{{.Note}}</div>{{end}}{{if and .Reason (ne .Status "not_checked")}}<div class="small muted">{{.Reason}}</div>{{end}}</td>
+    <td style="width:130px"><span class="badge b-{{.Status}}">{{.StatusLabel}}</span>{{if eq .Status "fail"}} <span class="badge b-{{.Level}}">{{.LevelLabel}}</span>{{end}}</td>
+  </tr>{{end}}
+  </table>
+</div>
+{{end}}
+
+<h2>{{t "report.annex"}}</h2>
+<p class="small muted">{{t "report.annex_help"}}</p>
+{{range .Categories}}{{range .Items}}{{if or .Evidence .Findings}}
+<details class="card"><summary><span class="id">{{.ID}}</span> {{.Title}}</summary>
+{{if .Evidence}}<div class="ev">{{range .Evidence}}{{.K}} = {{.V}}<br>{{end}}</div>{{end}}
+{{range .Findings}}{{if .Evidence}}<div class="ev">{{if .Object}}<strong>{{.Object}}</strong><br>{{end}}{{range .Evidence}}{{.K}} = {{.V}}<br>{{end}}</div>{{end}}{{end}}
+</details>
+{{end}}{{end}}{{end}}
+
+<footer>{{t "report.footer" "version" .R.Meta.Version}} · {{t "report.confidential"}}</footer>
+</main>
+<script>
+document.addEventListener("click", function (e) {
+  var b = e.target.closest("button.copy");
+  if (!b) return;
+  var txt = b.parentElement.querySelector("code").innerText;
+  var done = function () { var o = b.textContent; b.textContent = b.getAttribute("data-done"); setTimeout(function () { b.textContent = o; }, 1500); };
+  if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(txt).then(done); return; }
+  var ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); done(); } finally { ta.remove(); }
+});
+</script>
+</body>
+</html>
+{{define "issue"}}<div class="card {{.Level}}">
+  <div class="head"><span class="badge b-{{.Level}}">{{.LevelLabel}}</span><h3>{{.Title}}</h3><span class="id">{{.ID}} · {{.CategoryLabel}}</span>{{if .GPO}}<span class="badge b-gpo">GPO</span>{{end}}</div>
+  <p>{{.Summary}}</p>
+  {{if .Detail}}<p class="small muted">{{.Detail}}</p>{{end}}
+  {{if .GPO}}<div class="gpo">{{t "report.gpo_fix"}}{{if .GPOPath}} : {{.GPOPath}}{{end}}</div>{{end}}
+  {{if .Impact}}<div class="impact">⚠ {{.Impact}}</div>{{end}}
+  <ul class="objects">
+  {{range .Findings}}<li>
+    {{if .Object}}<div><strong>{{.Object}}</strong>{{if ne .Level $.Level}} <span class="badge b-{{.Level}}">{{levelLabel .Level}}</span>{{end}}{{if .GPO}} <span class="badge b-gpo">GPO</span>{{end}}</div>{{end}}
+    {{if .Evidence}}<div class="ev">{{range .Evidence}}{{.K}} = {{.V}}<br>{{end}}</div>{{end}}
+    {{if .Remediation}}<div class="cmd"><pre><code>{{.Remediation}}</code></pre><button class="copy" type="button" data-done="{{t "report.copied"}}">{{t "report.copy"}}</button></div>{{end}}
+  </li>{{end}}
+  </ul>
+  {{if .Refs}}<div class="small muted">{{t "report.refs"}} : {{range $i, $r := .Refs}}{{if $i}} · {{end}}<a href="{{$r.URL}}">{{$r.Name}}</a>{{end}}</div>{{end}}
+</div>{{end}}
