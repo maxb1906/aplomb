@@ -52,7 +52,13 @@ FRONT_SRC := $(shell find frontend/src -type f -not -path '*/mock/*') frontend/i
 frontend/node_modules/.package-lock.json: frontend/package-lock.json
 	cd frontend && npm ci --no-audit --no-fund
 
-frontend/dist/index.html: frontend/node_modules/.package-lock.json $(FRONT_SRC)
+# svelte-check vérifie aussi le backend de démonstration : son jeu de données (non versionné) doit exister.
+MOCK_DATA := frontend/src/lib/mock/data.json
+
+$(MOCK_DATA): tools/guimock/main.go $(wildcard testdata/snapshots/*.json)
+	go run ./tools/guimock
+
+frontend/dist/index.html: frontend/node_modules/.package-lock.json $(FRONT_SRC) $(MOCK_DATA)
 	cd frontend && npm run check && npm run build
 
 frontend: frontend/dist/index.html
