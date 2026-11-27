@@ -35,13 +35,14 @@ Chaque règle s'applique selon le **profil** de la machine (poste, serveur membr
 ## Démarrage
 
 1. Téléchargez `aplomb_<version>_windows_amd64.zip` depuis les [Releases](https://github.com/maxb1906/aplomb/releases) et décompressez-le sur une clé USB.
-2. Lancez `aplomb.exe` **en tant qu'administrateur** (clic droit → « Exécuter en tant qu'administrateur ») : l'audit dure quelques secondes et le rapport HTML s'ouvre dans le navigateur.
+2. Lancez `aplomb.exe` : l'**interface graphique** s'ouvre. Si vous n'êtes pas administrateur, le bouton « Relancer en administrateur » donne un audit complet. Cliquez sur « Lancer l'audit » : il dure quelques secondes.
 3. Les rapports sont rangés à côté de l'exécutable, un dossier par machine :
 
 ```
 aplomb.exe
 aplomb-data/
 ├── config.yaml
+├── webview2/                                 # cache de la fenêtre (interface graphique)
 └── rapports/
     └── PC-ACCUEIL-01/
         ├── 2026-11-25_1430.html              # rapport autonome, imprimable en PDF
@@ -54,6 +55,18 @@ Sans droits administrateur, Aplomb fonctionne en **mode dégradé** : les contr�
 
 > **SmartScreen / antivirus** : l'exécutable n'est pas encore signé. Windows peut afficher « Windows a protégé votre ordinateur » : « Informations complémentaires » puis « Exécuter quand même ». Vérifiez l'empreinte avec le fichier `SHA256SUMS` de la release.
 
+## Interface graphique
+
+Sans argument, `aplomb.exe` ouvre une fenêtre (Wails + WebView2) :
+
+- **Audit** : machine, élévation (bouton « Relancer en administrateur »), profil et langue du rapport, progression section par section ;
+- **Résultats** : score, note et résumé, problèmes classés par gravité avec filtres (niveau, catégorie, recherche), détail de chaque contrôle, objets concernés, commande de correction à copier, contrôles non vérifiés, détail par catégorie ; boutons vers le rapport HTML, le script de remédiation et le dossier ;
+- **Accepter un risque** depuis un problème : la justification est enregistrée dans `config.yaml` et le rapport est régénéré ;
+- **Historique** de tous les rapports d'`aplomb-data` (plusieurs machines : une clé USB, dix postes) ;
+- **Réglages** : technicien, société, logo, langues, profil, formats, règles désactivées.
+
+L'interface produit exactement les mêmes fichiers que la ligne de commande. Elle s'appuie sur le composant **Microsoft Edge WebView2**, présent sur Windows 10/11 et Windows Server 2025 ; s'il manque (Windows Server 2016 à 2022 sans Edge), Aplomb fait l'audit **en console**, comme la v1. `aplomb.exe audit` force toujours la console.
+
 ## Score
 
 Score sur 100, global et par catégorie : chaque contrôle vérifié pèse 10 (Critique), 4 (Attention) ou 1 (Info) ; score = poids des contrôles conformes / poids des contrôles vérifiés. Note A (≥ 90) à E (< 40). **Un seul problème Critique plafonne la note à C** (score ramené à 74 au plus ; le score brut figure dans le rapport).
@@ -65,7 +78,8 @@ Pour chaque problème, le rapport donne une commande PowerShell prête à copier
 ## Ligne de commande
 
 ```
-aplomb                                    # audit et ouverture du rapport (par défaut)
+aplomb                                    # interface graphique (par défaut ; console si WebView2 est absent)
+aplomb audit                              # audit en console et ouverture du rapport
 aplomb audit --out D:\rapports --format html,md,json,ps1 --report-lang en --profile serveur --no-open
 aplomb config --technician "Nom" --company "Ma société" --logo logo.png
 aplomb collect --out machine.json         # données brutes, sans évaluation
@@ -87,21 +101,22 @@ disabled_rules:
 
 ## Compilation et tests
 
-Prérequis : [Go](https://go.dev/dl/) (version de `go.mod`). Aucun CGO : la cross-compilation vers Windows fonctionne depuis Linux ou macOS.
+Prérequis : [Go](https://go.dev/dl/) (version de `go.mod`) et [Node.js](https://nodejs.org/) LTS pour l'interface graphique (`frontend/`, Svelte). Aucun CGO : la cross-compilation vers Windows fonctionne depuis Linux ou macOS.
 
 ```sh
 make test        # tests (règles, score, rapports sur des fixtures JSON)
-make windows     # dist/aplomb-windows-amd64.exe
+make windows     # dist/aplomb-windows-amd64.exe (compile aussi l'interface et les ressources : icône, manifeste)
 make build-all   # windows/amd64 et windows/arm64
 make all         # format, vet (Linux et Windows), tests, binaires
+make mock && (cd frontend && npm run dev)   # interface dans un navigateur, avec des données de démonstration
 ```
 
-La CI exécute aussi l'exe sur Windows Server, vérifie la syntaxe des scripts de remédiation avec PowerShell 5.1 et 7, et rejoue le [laboratoire](lab/README.md) : une machine rendue volontairement vulnérable doit voir chaque faiblesse détectée. Les versions sont publiées par GoReleaser à chaque tag `vX.Y.Z`.
+La CI exécute aussi l'exe sur Windows Server (dont l'ouverture de la fenêtre), vérifie la syntaxe des scripts de remédiation avec PowerShell 5.1 et 7, et rejoue le [laboratoire](lab/README.md) : une machine rendue volontairement vulnérable doit voir chaque faiblesse détectée. Les versions sont publiées par GoReleaser à chaque tag `vX.Y.Z`.
 
 ## Contribuer
 
 - Règles : `assets/rules.yaml` (textes FR/EN, remédiation) et `internal/checks/<catégorie>/` (logique) ; chaque règle doit avoir les deux, ce que vérifient les tests.
-- Traductions : `assets/i18n/fr.json` et `en.json` (mêmes clés, vérifié par les tests).
+- Traductions : `assets/i18n/fr.json` et `en.json` (mêmes clés, vérifié par les tests), y compris celles de l'interface graphique (`t('gui.…')` dans `frontend/src`).
 - Cadrage et décisions : [docs/STRUCTURE.md](docs/STRUCTURE.md).
 
 ## Licence

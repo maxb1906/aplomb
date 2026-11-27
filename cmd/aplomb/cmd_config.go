@@ -1,13 +1,14 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"gopkg.in/yaml.v3"
 
+	"github.com/maxb1906/aplomb/internal/app"
 	"github.com/maxb1906/aplomb/internal/config"
 )
 
@@ -42,24 +43,15 @@ func cmdConfig(e *env, args []string) int {
 	set("lang", &c.Lang, *lang)
 	set("report-lang", &c.ReportLang, *rlang)
 	set("profile", &c.Profile, *profile)
-	if c.Lang != "" && !e.bundle.Has(c.Lang) || c.ReportLang != "" && !e.bundle.Has(c.ReportLang) {
-		fmt.Fprintln(e.stderr, e.T("config.bad_lang"))
-		return 2
-	}
-	if _, ok := parseProfile(c.Profile); !ok {
-		fmt.Fprintln(e.stderr, e.T("audit.bad_profile", "profile", c.Profile))
-		return 2
-	}
 	path := filepath.Join(dir, config.FileName)
 	if changed {
-		data, err := yaml.Marshal(c)
+		path, err := app.SaveConfig(dir, c, e.bundle, e.T("config.header"))
+		var ie *app.InputError
+		if errors.As(err, &ie) {
+			fmt.Fprintln(e.stderr, ie.Message(e.tr))
+			return 2
+		}
 		if err != nil {
-			return e.fail(err)
-		}
-		if err := os.MkdirAll(dir, 0o755); err != nil {
-			return e.fail(err)
-		}
-		if err := os.WriteFile(path, append([]byte(e.T("config.header")+"\n"), data...), 0o644); err != nil {
 			return e.fail(err)
 		}
 		fmt.Fprintln(e.stdout, e.T("config.saved", "path", path))

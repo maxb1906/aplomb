@@ -3,12 +3,19 @@ version: 2
 project_name: aplomb
 dist: dist-goreleaser
 
+before:
+  hooks:
+    # Interface graphique embarquée (frontend/dist) et ressources Windows (icône, manifeste, version).
+    - make frontend
+    - go run ./tools/winres -version {{ .Version }}
+
 builds:
   - id: aplomb
     main: ./cmd/aplomb
     binary: aplomb
     env: [CGO_ENABLED=0]
     flags: [-trimpath]
+    tags: [desktop, production]
     ldflags: ["-s -w -X main.version={{ .Version }}"]
     targets: [windows_amd64, windows_arm64]
     mod_timestamp: "{{ .CommitTimestamp }}"
@@ -35,6 +42,6 @@ release:
   prerelease: auto
   name_template: "Aplomb {{ .Version }}"
   footer: |
-    **Windows** : téléchargez `aplomb_{{ .Version }}_windows_amd64.zip`, décompressez-le sur une clé USB et lancez `aplomb.exe` (de préférence en administrateur : clic droit → « Exécuter en tant qu'administrateur »).
+    **Windows** : téléchargez `aplomb_{{ .Version }}_windows_amd64.zip`, décompressez-le sur une clé USB et lancez `aplomb.exe` : l'interface graphique s'ouvre (le bouton « Relancer en administrateur » donne un audit complet). Sans le composant WebView2 (Windows Server 2016 à 2022), l'audit se fait en console ; `aplomb.exe audit` force la console.
     L'exécutable n'est pas encore signé : Windows SmartScreen peut afficher un avertissement (« Informations complémentaires » → « Exécuter quand même »).
     Vérifiez l'intégrité avec `SHA256SUMS`. Aplomb ne modifie jamais la machine auditée.

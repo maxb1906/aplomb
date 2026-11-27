@@ -41,3 +41,12 @@ func run(s *model.Snapshot, sections []section, progress Progress) {
 func newSnapshot(version string) *model.Snapshot {
 	return &model.Snapshot{Schema: model.SchemaVersion, Tool: "aplomb", Version: version, CollectedAt: time.Now().UTC().Truncate(time.Second)}
 }
+
+// Sections renvoie les noms des sections de collecte, dans l'ordre (barre de progression).
+func Sections() []string {
+	names := make([]string, len(sections))
+	for i, s := range sections {
+		names[i] = s.name
+	}
+	return names
+}

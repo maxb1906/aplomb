@@ -111,11 +111,3 @@ func TestHelpIsTranslated(t *testing.T) {
 		}
 	}
 }
-
-func TestParseProfile(t *testing.T) {
-	for in, want := range map[string]string{"poste": "workstation", "Serveur": "server", "server": "server", "dc": "dc", "": ""} {
-		if got, ok := parseProfile(in); !ok || got != want {
-			t.Errorf("%q → %q", in, got)
-		}
-	}
-}

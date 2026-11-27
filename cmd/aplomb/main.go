@@ -77,12 +77,14 @@ type command struct {
 var commands = map[string]command{}
 
 // order fixe l'ordre d'affichage des commandes dans l'aide.
-var order = []string{"audit", "collect", "evaluate", "config", "host", "rules", "hello", "version", "help"}
+var order = []string{"gui", "audit", "collect", "evaluate", "config", "host", "rules", "hello", "version", "help"}
 
-// defaultCommand est lancée sans argument (double-clic sur l'exe).
-const defaultCommand = "audit"
+// defaultCommand est lancée sans argument (double-clic sur l'exe) : l'interface
+// graphique, ou l'audit en console si elle ne peut pas s'ouvrir.
+const defaultCommand = "gui"
 
 func init() {
+	commands["gui"] = command{run: cmdGui}
 	commands["audit"] = command{run: cmdAudit}
 	commands["collect"] = command{run: cmdCollect}
 	commands["evaluate"] = command{run: cmdEvaluate}
@@ -113,7 +115,7 @@ func main() {
 				fmt.Fprintf(os.Stderr, "panic: %v\n%s\n", r, debug.Stack())
 				code = 3
 			}
-			if launchedAlone() {
+			if launchedAlone() && !guiShown {
 				pause(os.Args[1:])
 			}
 		}()
@@ -161,7 +163,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		name, rest = fs.Arg(0), fs.Args()[1:]
 	}
 	// La configuration n'est lue (et créée) que pour les commandes qui produisent un rapport.
-	if name == "audit" || name == "evaluate" || name == "config" {
+	if name == "audit" || name == "evaluate" || name == "config" || name == "gui" {
 		e.loadConfig()
 	}
 	switch {

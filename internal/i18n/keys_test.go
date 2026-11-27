@@ -23,15 +23,29 @@ func TestUsedKeysExist(t *testing.T) {
 	root := filepath.Join("..", "..")
 	reKey := regexp.MustCompile(`(?:\bT\(|\bt\s)"([a-z0-9_]+\.[a-z0-9_.\-]+)"`)
 	reNote := regexp.MustCompile(`(?:rules\.NA\(|Note\s*=\s*)"([a-z_]+)"`)
+	// Interface graphique (frontend/src) : t('clé') dans les .svelte et .ts.
+	reFront := regexp.MustCompile(`\bt\('([a-z0-9_]+\.[a-z0-9_.\-]+)'`)
 	used := map[string]string{}
 	err = filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() && (d.Name() == ".git" || d.Name() == "dist" || d.Name() == "testdata") {
+		if d.IsDir() && (d.Name() == ".git" || d.Name() == "dist" || d.Name() == "testdata" || d.Name() == "node_modules" || d.Name() == "mock") {
 			return filepath.SkipDir
 		}
 		ext := filepath.Ext(p)
+		if ext == ".svelte" || ext == ".ts" {
+			data, err := os.ReadFile(p)
+			if err != nil {
+				return err
+			}
+			for _, m := range reFront.FindAllStringSubmatch(string(data), -1) {
+				if !strings.HasSuffix(m[1], ".") {
+					used[m[1]] = p
+				}
+			}
+			return nil
+		}
 		if ext != ".go" && ext != ".html" && ext != ".md" || strings.HasSuffix(p, "_test.go") {
 			return nil
 		}
@@ -75,6 +89,12 @@ func TestUsedKeysExist(t *testing.T) {
 		used["summary.grade."+g] = "dyn"
 	}
 	used["section.host"], used["note.profile"], used["note.absent"] = "dyn", "dyn", "dyn"
+	for _, l := range b.Languages() {
+		used["gui.lang."+l] = "dyn"
+	}
+	for _, f := range []string{"html", "md", "json", "ps1"} {
+		used["gui.format."+f] = "dyn"
+	}
 	for k, where := range used {
 		if !have[k] {
 			t.Errorf("clé %q utilisée (%s) mais absente des traductions", k, where)

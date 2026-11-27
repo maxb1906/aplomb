@@ -131,3 +131,16 @@ func (t *Translator) T(key string, pairs ...string) string {
 	}
 	return strings.NewReplacer(repl...).Replace(msg)
 }
+
+// Catalog renvoie une copie des traductions de lang, complétées par la langue
+// de repli pour les clés absentes (interface graphique).
+func (b *Bundle) Catalog(lang string) map[string]string {
+	out := make(map[string]string, len(b.catalogs[Fallback]))
+	for k, v := range b.catalogs[Fallback] {
+		out[k] = v
+	}
+	for k, v := range b.catalogs[lang] {
+		out[k] = v
+	}
+	return out
+}

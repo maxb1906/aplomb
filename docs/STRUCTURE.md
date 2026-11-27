@@ -1,7 +1,7 @@
 # Aplomb — Analyseur d'hygiène et de sécurité Windows (Local Hardening Audit) — Structure projet
 
 > Fichier de cadrage et de suivi d'implémentation. Il consigne tous les choix du projet et sert de référence à Claude Code pendant le développement sur la devbox Oracle.
-> Statut : **v1.0.0 publiée** (2026-11-25) — https://github.com/maxb1906/aplomb/releases/tag/v1.0.0 ; prochaines pistes : § 11.
+> Statut : **v1.0.0 publiée** (2026-11-25) — https://github.com/maxb1906/aplomb/releases/tag/v1.0.0 ; **v2.0.0 (interface graphique Wails) prête, en attente de validation** avant publication (étape 14) ; prochaines pistes : § 11.
 > Nom : **Aplomb** — licence **GPL-3.0** — dépôt GitHub public — projet **séparé** d'Arpent.
 
 ---
@@ -51,8 +51,9 @@ Cas d'usage visé : le même technicien/MSP qu'Arpent. Arpent audite **le résea
 
 ### Interface
 - **v1 : CLI uniquement** — `aplomb.exe` sans argument lance l'audit et ouvre le rapport HTML dans le navigateur.
-- `aplomb.exe --out D:\rapports --format html,md,json --lang fr --profile serveur`
-- Pas de serveur web local en v1 (inutile pour un audit de quelques secondes) ; à reconsidérer si on fait un mode « comparaison » interactif.
+- **v2 : interface graphique Wails** (WebView2, frontend Svelte embarqué) dans **le même exe** — `aplomb.exe` sans argument ouvre la fenêtre ; toutes les commandes de la v1 restent identiques (`aplomb.exe audit` = audit en console). Si WebView2 est absent (Windows Server 2016 à 2022 sans Edge), l'exe se replie sur l'audit en console : le principe « rien à installer » est conservé.
+- `aplomb.exe audit --out D:\rapports --format html,md,json --lang fr --profile serveur`
+- Pas de serveur web local : Wails sert l'interface depuis l'exe, sans port réseau ouvert.
 
 ---
 
@@ -62,6 +63,7 @@ Cas d'usage visé : le même technicien/MSP qu'Arpent. Arpent audite **le résea
 aplomb.exe
 aplomb-data/
 ├── config.yaml                    # technicien, société, logo, langue, profil par défaut, règles désactivées
+├── webview2/                      # v2 : cache de la fenêtre WebView2 (dossier temporaire si aplomb-data n'est pas inscriptible)
 └── rapports/
     └── PC-ACCUEIL-01/
         ├── 2026-11-25_1430.html   # rapport autonome (CSS inline)
@@ -188,7 +190,10 @@ Pas de base SQLite en v1 : un audit = un JSON. La comparaison (§ 11) lit deux J
 ## 7. Architecture du code (Go)
 
 ```
-cmd/aplomb/            # point d'entrée CLI
+cmd/aplomb/            # point d'entrée : CLI, et commande « gui » (par défaut) qui ouvre la fenêtre
+internal/app/           # v2 : chaîne commune CLI / interface (config, évaluation, écriture des rapports, historique)
+internal/gui/           # v2 : objet lié au frontend (Wails) ; seul run_windows.go dépend de Wails
+frontend/               # v2 : interface Svelte + Vite + TypeScript, compilée dans frontend/dist et embarquée
 internal/host/          # contexte machine, élévation, rôle, domaine, GPO
 internal/win/           # wrappers bas niveau : registre, WMI, COM, ACL, NetAPI, Task Scheduler
 internal/checks/
@@ -205,6 +210,7 @@ internal/score/
 internal/report/        # rendu HTML, Markdown, JSON, script .ps1
 internal/i18n/
 assets/                 # rules.yaml, i18n/fr.json, en.json, templates, CSS
+tools/                  # winres (icône, manifeste, version de l'exe), guimock (données de démonstration du frontend)
 ```
 
 Chaque contrôle implémente la même interface : `Collect()` (lit l'état brut) puis évaluation par les règles. La collecte est séparée de l'évaluation pour pouvoir **tester les règles sur des jeux de données JSON enregistrés**, sans Windows.
@@ -283,6 +289,7 @@ Chaque contrôle implémente la même interface : `Collect()` (lit l'état brut)
 - [x] **Étape 11 — Remédiation** : commandes par règle, script `.ps1` commenté avec `-WhatIf`, détection GPO.
 - [x] **Étape 12 — Lab** : `make-vulnerable.ps1`, VM de test, chasse aux faux positifs.
 - [x] **Étape 13 — Finitions v1.0** : config, mode dégradé sans admin, textes FR/EN relus, publication GitHub Releases.
+- [x] **Étape 14 — Interface graphique (v2.0)** : Wails + Svelte dans le même exe (audit, résultats, acceptation de risque, historique, réglages), repli console sans WebView2, icône et manifeste. *Reste à faire : validation sur Windows réel, puis tag `v2.0.0`.*
 
 Chaque étape se termine par un exe Windows testable.
 
@@ -300,6 +307,7 @@ Chaque étape se termine par un exe Windows testable.
 
 - [x] **Nom : Aplomb** — le fil à plomb vérifie qu'un mur est droit ; une machine « d'aplomb » est stable et bien réglée ; le mot existe aussi en anglais. Forme une paire avec Arpent (l'arpenteur mesure le terrain, le fil à plomb vérifie chaque mur). Binaire `aplomb` / `aplomb.exe`, module Go `github.com/maxb1906/aplomb`.
 - [x] Vérifier que le dépôt `aplomb` est libre au moment de le créer (étape 0) : `maxb1906/aplomb` libre le 2026-11-25. Nom de domaine : non vérifié, pas nécessaire pour la v1.
+- [x] **Interface graphique (v2)** : Wails v2, comme Relevé, Cadastre, Rodage et Tamis — un seul exe, interface sans argument, CLI inchangée avec arguments.
 
 ---
 
@@ -327,3 +335,7 @@ Chaque étape se termine par un exe Windows testable.
 - **2026-11-25** — Dépôt public `maxb1906/aplomb` créé et poussé. Premier passage de la CI : **plantage de la bibliothèque `wmi` sur le tableau `Win32_SystemEnclosure.ChassisTypes`** (conversion int32 → uint16) ; lecture remplacée par COM direct (`WbemQuery`), et `aplomb host -h` affiche désormais l'aide au lieu de lancer la collecte.
 - **2026-11-25** — **Premier lab réel en CI (Windows Server 2025)** : 17 faiblesses sur 18 détectées (la 18ᵉ, ACC-008, venait de la création du compte de test, refaite par ADSI). Faux positifs relevés sur la machine neuve et corrigés : règles de pare-feu des applications du Store (limitées par package, `LocalAppPackageId`) exclues de FW-003 ; tâches `\\Microsoft\\` exclues de TSK-005 (exécutable absent d'une tâche intégrée, ex. `USO_UxBroker` sur Server 2025) ; TSK-004 : une tâche sans auteur n'est signalée que si son programme est hors Program Files / Windows (les tâches masquées restent signalées). Vrais positifs confirmés sur le runner : Defender désactivé et lecteurs exclus, UAC sans invite, RDP/WinRM/SSH ouverts sur le profil Public, tâches Edge orphelines.
 - **2026-11-25** — **Release v1.0.0** publiée par GoReleaser (tag `v1.0.0`) : `aplomb_1.0.0_windows_amd64.zip`, `aplomb_1.0.0_windows_arm64.zip` (exe + LICENSE + README FR/EN) et `SHA256SUMS`, sommes vérifiées après téléchargement. Exécutable non signé (signature SignPath : § 11).
+- **2026-11-27** — **Étape 14 (v2.0 : interface graphique Wails)**, demandée par l'utilisateur ; elle remplace le choix « CLI seule » de la v1 (§ 3, § 13). Choix : **même exe** (Wails v2.17.1, en Go pur sous Windows : `CGO_ENABLED=0` conservé, cross-compilation depuis la devbox inchangée), **sans argument → fenêtre**, toutes les commandes v1 identiques. **Sous-système console conservé** (pas `-H windowsgui`) : sinon PowerShell n'attend plus la fin de l'exe et `$LASTEXITCODE` disparaît (scripts du technicien, lab et CI cassés) ; lancé par double-clic, l'exe libère sa console (`FreeConsole`) avant d'ouvrir la fenêtre — un bref flash de la console reste visible. **Repli console** si WebView2 manque (Windows Server 2016 à 2022 sans Edge) ou si l'exe a été compilé sans frontend : l'audit se fait comme en v1. Cache WebView2 dans `aplomb-data/webview2` (et non `%APPDATA%`, pour n'écrire que dans `aplomb-data`), dossier temporaire en dernier recours.
+- **2026-11-27** — Architecture v2 : `internal/app` regroupe la chaîne commune (config, `Produce`, historique, relecture d'un rapport JSON) que la CLI et l'interface appellent ; `report.BuildView` est exporté avec des balises JSON pour que l'interface affiche **exactement** le contenu du rapport HTML ; `internal/gui` (objet lié au frontend) est testable sous Linux, seul `run_windows.go` importe Wails. Frontend **Svelte 5 + Vite + TypeScript** (comme Relevé), sans générateur de liaisons Wails (appels directs à `window.go.gui.App`), compilé dans `frontend/dist` puis embarqué (`frontend/assets.go`) ; les fichiers compilés ne sont pas versionnés. Balises `desktop,production` dans le Makefile et GoReleaser ; Node.js LTS devient un prérequis de compilation (pas d'exécution).
+- **2026-11-27** — Fonctions de l'interface : audit avec progression par section, bouton **« Relancer en administrateur »** (`ShellExecute` « runas », mêmes `--data`/`--lang`), résultats (score, note, résumé, filtres par niveau/catégorie/recherche, objets concernés, commande à copier, non vérifiés, catégories, machine), **acceptation d'un risque depuis un problème** (justification obligatoire → `disabled_rules` de `config.yaml`, puis réévaluation du snapshot et **réécriture des mêmes fichiers**, qui portent la date de collecte), réactivation, **historique** de tous les rapports d'`aplomb-data`, réglages (`config.yaml`). Ouverture de fichiers limitée au dossier de données et au dossier du rapport affiché ; liens externes ouverts dans le navigateur, jamais dans la fenêtre. Langue de l'interface commutable à chaud, rapport affiché retraduit.
+- **2026-11-27** — i18n : toutes les chaînes de l'interface sont des clés `gui.*` de `fr.json`/`en.json`, servies au frontend par Go ; `TestUsedKeysExist` analyse aussi `frontend/src` (`t('…')`). `cmd.audit` ne dit plus « (par défaut) ». Ressources Windows générées par `tools/winres` (`tc-hib/winres`, Go pur) : icône fil à plomb, manifeste `asInvoker` + DPI par écran + Common Controls v6, informations de version. CI : job « Interface graphique (Svelte) » (`svelte-check` + build), test de lancement `aplomb.exe gui --smoke` sur `windows-latest` (la fenêtre se ferme dès que le frontend est prêt) ; le lancement sans argument du test de fumée devient `audit --no-open`. Exe ≈ 13 Mo (7 Mo en v1).

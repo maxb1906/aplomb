@@ -53,7 +53,7 @@ func HTML(w io.Writer, r *Report, o Options) error {
 	if err != nil {
 		return err
 	}
-	return t.Execute(w, buildView(r, o))
+	return t.Execute(w, BuildView(r, o))
 }
 
 // Markdown écrit le rapport Markdown.
@@ -66,5 +66,5 @@ func Markdown(w io.Writer, r *Report, o Options) error {
 	if err != nil {
 		return err
 	}
-	return t.Execute(w, buildView(r, o))
+	return t.Execute(w, BuildView(r, o))
 }

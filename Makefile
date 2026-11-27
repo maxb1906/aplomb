@@ -9,10 +9,12 @@ GOFLAGS  := -trimpath
 # Cible du produit : windows/amd64 (arm64 en bonus). linux/* ne sert qu'au
 # développement sur la devbox (les contrôles Windows y renverront « non applicable »).
 PLATFORMS := windows/amd64 windows/arm64
+# Balises exigées par Wails pour une fenêtre de production (sans outils de développement).
+GUI_TAGS  := desktop,production
 
 export CGO_ENABLED := 0
 
-.PHONY: all build test vet fmt fmt-check build-all windows clean $(PLATFORMS)
+.PHONY: all build test vet fmt fmt-check build-all windows clean frontend winres mock $(PLATFORMS)
 
 all: fmt-check vet test build-all
 
@@ -38,11 +40,30 @@ windows: windows/amd64
 
 build-all: $(PLATFORMS)
 
-$(PLATFORMS):
+$(PLATFORMS): frontend winres
 	$(eval OS := $(word 1,$(subst /, ,$@)))
 	$(eval ARCH := $(word 2,$(subst /, ,$@)))
-	GOOS=$(OS) GOARCH=$(ARCH) go build $(GOFLAGS) -ldflags "$(LDFLAGS)" \
+	GOOS=$(OS) GOARCH=$(ARCH) go build $(GOFLAGS) -tags $(GUI_TAGS) -ldflags "$(LDFLAGS)" \
 		-o $(DIST)/$(BINARY)-$(OS)-$(ARCH)$(if $(filter windows,$(OS)),.exe,) $(PKG)
 
+## frontend : interface graphique (Svelte) compilée dans frontend/dist, embarquée dans l'exe
+FRONT_SRC := $(shell find frontend/src -type f -not -path '*/mock/*') frontend/index.html frontend/package.json frontend/vite.config.ts frontend/svelte.config.js
+
+frontend/node_modules/.package-lock.json: frontend/package-lock.json
+	cd frontend && npm ci --no-audit --no-fund
+
+frontend/dist/index.html: frontend/node_modules/.package-lock.json $(FRONT_SRC)
+	cd frontend && npm run check && npm run build
+
+frontend: frontend/dist/index.html
+
+## winres : icône, manifeste et version de l'exe (cmd/aplomb/rsrc_windows_*.syso)
+winres:
+	go run ./tools/winres -version $(VERSION)
+
+## mock : jeu de démonstration pour « cd frontend && npm run dev » (navigateur, sans Windows)
+mock:
+	go run ./tools/guimock
+
 clean:
-	rm -rf $(DIST)
+	rm -rf $(DIST) frontend/dist/assets frontend/dist/index.html cmd/aplomb/rsrc_windows_*.syso

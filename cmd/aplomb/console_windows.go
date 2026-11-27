@@ -17,3 +17,9 @@ func launchedAlone() bool {
 	n, _, _ := proc.Call(uintptr(unsafe.Pointer(&pids[0])), uintptr(len(pids)))
 	return n == 1
 }
+
+// hideConsole détache le processus de sa console : lancé par double-clic, la
+// fenêtre noire disparaît et seule l'interface graphique reste.
+func hideConsole() {
+	syscall.NewLazyDLL("kernel32.dll").NewProc("FreeConsole").Call()
+}

@@ -60,8 +60,8 @@ type Text struct {
 
 // Ref est une référence indicative (Microsoft, ANSSI, MITRE ATT&CK).
 type Ref struct {
-	Name string `yaml:"name"`
-	URL  string `yaml:"url"`
+	Name string `yaml:"name" json:"name"`
+	URL  string `yaml:"url" json:"url"`
 }
 
 // Rule est une règle d'audit.

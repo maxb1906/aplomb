@@ -35,12 +35,24 @@ Each rule applies according to the machine **profile** (workstation, member serv
 ## Getting started
 
 1. Download `aplomb_<version>_windows_amd64.zip` from the [Releases](https://github.com/maxb1906/aplomb/releases) and unzip it onto a USB stick.
-2. Run `aplomb.exe` **as administrator** (right-click → "Run as administrator"): the audit takes a few seconds and the HTML report opens in the browser.
-3. Reports are stored next to the executable, one folder per machine (`aplomb-data/rapports/<MACHINE>/`): `.html` (self-contained, printable to PDF), `.md`, `.json` (raw results + collected data) and `_remediation.ps1` (all fixes commented out).
+2. Run `aplomb.exe`: the **graphical interface** opens. If you are not an administrator, the "Restart as administrator" button gives a complete audit. Click "Start the audit": it takes a few seconds.
+3. Reports are stored next to the executable, one folder per machine (`aplomb-data/rapports/<MACHINE>/`; the window's cache goes to `aplomb-data/webview2/`): `.html` (self-contained, printable to PDF), `.md`, `.json` (raw results + collected data) and `_remediation.ps1` (all fixes commented out).
 
 Without administrator rights, Aplomb runs in **degraded mode**: checks it cannot perform (BitLocker, Defender exclusions, share permissions, LSA protection…) are marked "not checked", excluded from the score, and the coverage rate is shown.
 
 > **SmartScreen / antivirus**: the executable is not signed yet. Windows may show "Windows protected your PC": click "More info" then "Run anyway". Check the hash against the release's `SHA256SUMS` file.
+
+## Graphical interface
+
+Without arguments, `aplomb.exe` opens a window (Wails + WebView2):
+
+- **Audit**: machine, elevation ("Restart as administrator" button), profile and report language, section-by-section progress;
+- **Results**: score, grade and summary, issues sorted by severity with filters (level, category, search), details of each check, affected objects, ready-to-copy fix, checks not performed, per-category details; buttons to the HTML report, the remediation script and the folder;
+- **Accept a risk** from an issue: the justification is saved in `config.yaml` and the report is regenerated;
+- **History** of all reports in `aplomb-data` (several machines: one USB stick, ten workstations);
+- **Settings**: technician, company, logo, languages, profile, formats, disabled rules.
+
+The interface produces exactly the same files as the command line. It relies on the **Microsoft Edge WebView2** component, present on Windows 10/11 and Windows Server 2025; if it is missing (Windows Server 2016 to 2022 without Edge), Aplomb runs the audit **in the console**, like v1. `aplomb.exe audit` always forces the console.
 
 ## Score
 
@@ -53,7 +65,8 @@ For each issue, the report gives a ready-to-copy PowerShell command and warns ab
 ## Command line
 
 ```
-aplomb                                    # audit and open the report (default)
+aplomb                                    # graphical interface (default; console if WebView2 is missing)
+aplomb audit                              # console audit, then open the report
 aplomb audit --out D:\reports --format html,md,json,ps1 --report-lang en --profile server --no-open
 aplomb config --technician "Name" --company "My company" --logo logo.png
 aplomb collect --out machine.json         # raw data, no evaluation
@@ -75,16 +88,17 @@ disabled_rules:
 
 ## Building and testing
 
-Requirements: [Go](https://go.dev/dl/) (version from `go.mod`). No CGO: cross-compiling to Windows works from Linux or macOS.
+Requirements: [Go](https://go.dev/dl/) (version from `go.mod`) and [Node.js](https://nodejs.org/) LTS for the graphical interface (`frontend/`, Svelte). No CGO: cross-compiling to Windows works from Linux or macOS.
 
 ```sh
 make test        # tests (rules, score, reports on JSON fixtures)
-make windows     # dist/aplomb-windows-amd64.exe
+make windows     # dist/aplomb-windows-amd64.exe (also builds the interface and the resources: icon, manifest)
 make build-all   # windows/amd64 and windows/arm64
 make all         # format, vet (Linux and Windows), tests, binaries
+make mock && (cd frontend && npm run dev)   # interface in a browser, with demo data
 ```
 
-CI also runs the exe on Windows Server, checks the syntax of the remediation scripts with PowerShell 5.1 and 7, and replays the [lab](lab/README.md): a machine made deliberately vulnerable must have every weakness detected. Releases are published by GoReleaser on each `vX.Y.Z` tag.
+CI also runs the exe on Windows Server (including opening the window), checks the syntax of the remediation scripts with PowerShell 5.1 and 7, and replays the [lab](lab/README.md): a machine made deliberately vulnerable must have every weakness detected. Releases are published by GoReleaser on each `vX.Y.Z` tag.
 
 ## License
 

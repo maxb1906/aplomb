@@ -9,3 +9,6 @@ import "github.com/maxb1906/aplomb/internal/model"
 func Collect(version string, progress Progress) (*model.Snapshot, error) {
 	return nil, ErrNotWindows
 }
+
+// sections : aucune collecte hors de Windows.
+var sections []section

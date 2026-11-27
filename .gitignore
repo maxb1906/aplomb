@@ -4,3 +4,5 @@
 *.out
 /aplomb-data/
 /dist-goreleaser/
+/cmd/aplomb/rsrc_windows_*.syso
+/frontend/node_modules/

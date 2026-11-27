@@ -31,9 +31,22 @@ jobs:
         run: GOOS=windows go vet ./...
       - run: go test -race ./...
 
+  frontend:
+    name: Interface graphique (Svelte)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - working-directory: frontend
+        run: npm ci --no-audit --no-fund && npm run check && npm run build
+
   build:
     name: Build (cross-compilation)
-    needs: test
+    needs: [test, frontend]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -42,6 +55,11 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+      - uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
       - run: make build-all
       - name: SHA-256
         run: cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
@@ -70,12 +88,18 @@ jobs:
         shell: pwsh
         run: |
           $exe = "./dist/aplomb-windows-amd64.exe"
-          foreach ($a in @(@("--lang","fr","hello"), @("--lang","en","hello"), @(), @("version"), @("help"))) {
+          foreach ($a in @(@("--lang","fr","hello"), @("--lang","en","hello"), @("audit","--no-open"), @("version"), @("help"))) {
             & $exe @a
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
           $out = & $exe --lang fr hello | Out-String
           if ($out -notmatch "Bonjour depuis Aplomb") { Write-Error "sortie inattendue : $out"; exit 1 }
+      - name: Interface graphique (ouverture de la fenêtre WebView2, fermeture dès qu'elle est prête)
+        shell: pwsh
+        timeout-minutes: 3
+        run: |
+          & ./dist/aplomb-windows-amd64.exe --data "$env:RUNNER_TEMP\gui-data" gui --smoke
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
   remediation-syntax:
     name: Syntaxe des scripts de remédiation (PowerShell 5.1 et 7)
