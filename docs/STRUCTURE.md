@@ -1,7 +1,7 @@
 # Aplomb — Analyseur d'hygiène et de sécurité Windows (Local Hardening Audit) — Structure projet
 
 > Fichier de cadrage et de suivi d'implémentation. Il consigne tous les choix du projet et sert de référence à Claude Code pendant le développement sur la devbox Oracle.
-> Statut : **v1.0.0 publiée** (2026-11-25) — https://github.com/maxb1906/aplomb/releases/tag/v1.0.0  ; **v2.0.0 publiée** (2026-11-27, interface graphique Wails) — https://github.com/maxb1906/aplomb/releases/tag/v2.0.0 ; prochaines pistes : § 11.
+> Statut : **v1.0.0 publiée** (2026-11-25) — https://github.com/maxb1906/aplomb/releases/tag/v1.0.0 ; **v2.0.0 publiée** (2026-11-27, interface graphique Wails) — https://github.com/maxb1906/aplomb/releases/tag/v2.0.0 ; prochaines pistes : § 11.
 > Nom : **Aplomb** — licence **GPL-3.0** — dépôt GitHub public — projet **séparé** d'Arpent.
 
 ---
